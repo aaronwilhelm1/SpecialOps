@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Move element &apos;gameObject.java&apos; to &apos;SpecialOps/src/gameobjects&apos;&#x0D;&#x0A;- Original project: &apos;SpecialOps&apos;&#x0D;&#x0A;- Destination element: &apos;SpecialOps/src/gameobjects&apos;&#x0D;&#x0A;- Original element: &apos;gametype.gameObject.java&apos;&#x0D;&#x0A;- Update references to refactored element" description="Move compilation unit" destination="/src&lt;gameobjects" element1="/src&lt;gametype{gameObject.java" files="0" flags="589830" folders="0" id="org.eclipse.jdt.ui.move" patterns="*" policy="org.eclipse.jdt.ui.moveResources" qualified="false" references="true" stamp="1457050263702" units="1" version="1.0"/>
+</session>

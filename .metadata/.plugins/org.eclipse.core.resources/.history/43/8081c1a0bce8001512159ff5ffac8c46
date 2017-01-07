@@ -1,0 +1,729 @@
+package gameobjects;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Timer;
+
+import gametype.CTF;
+import gametype.GameType;
+import geometry.CollisionDetector;
+import geometry.Coordinate;
+import geometry.Rectangle;
+import geometry.Circle;
+import geometry.Shape;
+import gui.GUI;
+import gui.OurPanel;
+import visuals.Animation;
+import visuals.Drawable;
+import visuals.ImageLoader;
+
+public class World{
+
+	Timer timer;
+	ArrayList<Shape> objectList;
+	ArrayList<Block> blockList;
+	ArrayList<Player> playerList;
+	public Block[][] blockLayout;
+	boolean upPressed;
+	boolean downPressed;
+	boolean leftPressed;
+	boolean rightPressed;
+	boolean upReleased;
+	private OurPanel panel;
+	final double playerMoveDelay = 50;
+	private enum GameMode {CTF};
+	private GameMode mode;
+	private GameType gameType;
+	private ArrayList<GameObject> gameTypeExtras;
+	private ArrayList<Rectangle> boundaries;
+	private ArrayList<Bullet> shells;
+	private final int maxNumBullets = 500;
+	private ArrayList<Blood> bloods;
+	private final int maxNumBloods = 500;
+	private String winningTeam;
+	private ArrayList<Projectile> projectileList;
+
+	private GUI gui;
+
+	public World(GUI g, OurPanel p) {
+		objectList = new ArrayList<Shape>();
+		blockList = new ArrayList<Block>();
+		playerList = new ArrayList<Player>();
+		shells = new ArrayList<Bullet>(maxNumBullets);
+		bloods = new ArrayList<Blood>(maxNumBloods);
+		timer = new Timer();
+		winningTeam = null;
+		projectileList = new ArrayList<Projectile>();
+		
+		gui = g;
+		panel = p;
+		mode = GameMode.CTF;
+
+
+		/*	boundaries = new ArrayList<Rectangle>();
+	Coordinate[] tl = new Coordinate[4];
+	boundaries.add(new Rectangle())*/
+	}
+	
+	public void buildWorld() {
+		createMap();
+		createPlayers();
+		
+		if (mode == GameMode.CTF) {
+			gameType = new CTF(this);
+		}
+		gameTypeExtras = gameType.getExtras();
+		winningTeam = null;
+	}
+	
+	public void destroyWorld() {
+		blockList = null;
+		playerList = new ArrayList<Player>();
+		gameType = null;
+		gameTypeExtras = null;
+		gui.state = GUI.State.PLAYER_SELECTION;
+		winningTeam = null;
+		bloods = new ArrayList<Blood>();
+		shells = new ArrayList<Bullet>();
+		projectileList = new ArrayList<Projectile>();
+	}
+
+	public void updateWorld(){
+		checkMovement();
+		checkFiring();
+		checkSpawn();
+		checkProjectiles();
+		gameType.checkGameTypeMechanics(playerList);
+	}
+
+	public void createMap() {
+		blockList = LevelIndex.getWarehouseList();
+	}
+
+	public void createPlayers() {
+		int team = 0;
+		for (int i = 0; i <6; i++){
+
+			playerList.add(new Player(i,team, this));
+			if (team == 0) {
+				team = 1;
+			}
+			else if (team == 1) {
+				team = 0;
+			}
+		}
+
+	}
+
+	public void checkMovement() {
+
+		for (Player player:playerList) {
+			if (player.getIsDead() == false) {
+				if (player.getIsStanding() == false) {
+					checkPlayerCollisions(player);
+				}
+
+				if (player.getIsPressedRight() == true) {
+					player.rotateRight();
+				}
+				else if (player.getIsPressedLeft() == true) {
+					player.rotateLeft();
+				}
+			}
+		}
+	}
+
+
+	public void keyPressed(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_S) {
+			if (System.currentTimeMillis() - playerList.get(0).getTimeOfTap() < Player.PLAYER_DOUBLE_TAP_DELAY) {
+				playerList.get(0).isBackwards = true;
+			}
+
+			playerList.get(0).setIsStanding(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_W) {
+			playerList.get(0).setIsPressedLeft(true);
+			/*  playerList.get(0).setIsStrafingLeft(false);//ends strafing
+       playerList.get(0).setIsStrafingRight(false);//ends strafing*/
+
+		}
+		if (e.getKeyCode() == KeyEvent.VK_X) {
+			playerList.get(0).setIsPressedRight(true);
+			/* playerList.get(0).setIsStrafingRight(false);//ends strafing
+       playerList.get(0).setIsStrafingLeft(false);//ends strafing*/
+		}
+		if (e.getKeyCode() == KeyEvent.VK_PERIOD) {
+			if (System.currentTimeMillis() - playerList.get(1).getTimeOfTap() < Player.PLAYER_DOUBLE_TAP_DELAY) {
+				playerList.get(1).isBackwards = true;
+				//System.out.println("is set Backwards");
+			}
+
+			playerList.get(1).setIsStanding(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_COMMA) {
+			playerList.get(1).setIsPressedLeft(true);
+
+		}
+		if (e.getKeyCode() == KeyEvent.VK_SLASH) {
+			playerList.get(1).setIsPressedRight(true);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_NUMPAD2) {
+			if (System.currentTimeMillis() - playerList.get(2).getTimeOfTap() < Player.PLAYER_DOUBLE_TAP_DELAY) {
+				playerList.get(2).isBackwards = true;
+				//System.out.println("is set Backwards");
+			}
+
+			playerList.get(2).setIsStanding(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_NUMPAD1) {
+			playerList.get(2).setIsPressedLeft(true);
+
+		}
+		if (e.getKeyCode() == KeyEvent.VK_NUMPAD3) {
+			playerList.get(2).setIsPressedRight(true);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+			if (System.currentTimeMillis() - playerList.get(3).getTimeOfTap() < Player.PLAYER_DOUBLE_TAP_DELAY) {
+				playerList.get(3).isBackwards = true;
+				//System.out.println("is set Backwards");
+			}
+
+			playerList.get(3).setIsStanding(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+			playerList.get(3).setIsPressedLeft(true);
+
+		}
+		if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+			playerList.get(3).setIsPressedRight(true);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_ADD) {
+			if (System.currentTimeMillis() - playerList.get(4).getTimeOfTap() < Player.PLAYER_DOUBLE_TAP_DELAY) {
+				playerList.get(4).isBackwards = true;
+				//System.out.println("is set Backwards");
+			}
+
+			playerList.get(4).setIsStanding(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+			playerList.get(4).setIsPressedLeft(true);
+
+		}
+		if (e.getKeyCode() == KeyEvent.VK_SUBTRACT) {
+			playerList.get(4).setIsPressedRight(true);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_I) {
+			if (System.currentTimeMillis() - playerList.get(5).getTimeOfTap() < Player.PLAYER_DOUBLE_TAP_DELAY) {
+				playerList.get(5).isBackwards = true;
+				//System.out.println("is set Backwards");
+			}
+
+			playerList.get(5).setIsStanding(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_U) {
+			playerList.get(5).setIsPressedLeft(true);
+
+		}
+		if (e.getKeyCode() == KeyEvent.VK_O) {
+			playerList.get(5).setIsPressedRight(true);
+		}
+	} 
+
+
+	public void keyReleased(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_S) {
+			playerList.get(0).setIsStanding(true);
+			playerList.get(0).setTimeOfTap();
+			playerList.get(0).setCanSetTimeOfTap(true);
+			playerList.get(0).isBackwards = false;
+		}
+		if (e.getKeyCode() == KeyEvent.VK_W) {
+			playerList.get(0).setIsPressedLeft(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_X) {
+			playerList.get(0).setIsPressedRight(false);
+
+		}
+		if (e.getKeyCode() == KeyEvent.VK_PERIOD) {
+			playerList.get(1).setIsStanding(true);
+			playerList.get(1).setTimeOfTap();
+			playerList.get(1).setCanSetTimeOfTap(true);
+			playerList.get(1).isBackwards = false;
+		}
+		if (e.getKeyCode() == KeyEvent.VK_COMMA) {
+			playerList.get(1).setIsPressedLeft(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_SLASH) {
+			playerList.get(1).setIsPressedRight(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_NUMPAD2) {
+			playerList.get(2).setIsStanding(true);
+			playerList.get(2).setTimeOfTap();
+			playerList.get(2).setCanSetTimeOfTap(true);
+			playerList.get(2).isBackwards = false;
+		}
+		if (e.getKeyCode() == KeyEvent.VK_NUMPAD1) {
+			playerList.get(2).setIsPressedLeft(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_NUMPAD3) {
+			playerList.get(2).setIsPressedRight(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+			playerList.get(3).setIsStanding(true);
+			playerList.get(3).setTimeOfTap();
+			playerList.get(3).setCanSetTimeOfTap(true);
+			playerList.get(3).isBackwards = false;
+		}
+		if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+			playerList.get(3).setIsPressedLeft(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+			playerList.get(3).setIsPressedRight(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_ADD) {
+			playerList.get(4).setIsStanding(true);
+			playerList.get(4).setTimeOfTap();
+			playerList.get(4).setCanSetTimeOfTap(true);
+			playerList.get(4).isBackwards = false;
+		}
+		if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+			playerList.get(4).setIsPressedLeft(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_SUBTRACT) {
+			playerList.get(4).setIsPressedRight(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_I) {
+			playerList.get(5).setIsStanding(true);
+			playerList.get(5).setTimeOfTap();
+			playerList.get(5).setCanSetTimeOfTap(true);
+			playerList.get(5).isBackwards = false;
+		}
+		if (e.getKeyCode() == KeyEvent.VK_U) {
+			playerList.get(5).setIsPressedLeft(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_O) {
+			playerList.get(5).setIsPressedRight(false);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_R) {
+			destroyWorld();
+		}
+	}
+
+	public void keyTyped(KeyEvent arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public Player getPlayer(int num) {
+		return playerList.get(num);
+	}
+
+	public void paintOffScreen(Graphics g)
+	{
+
+		// location of soldier changes each time the timer goes off
+		//	g.drawImage(soldier, soldierX, soldierY, this);	// 'soldier' was loaded in constructor
+
+		g.drawImage(ImageLoader.getBackground(), 0, 0, panel);
+		updateWorld();
+		//g.drawImage(GUI.soldier, getPlayer(0).point.getX(), getPlayer(0).point.getY(), gui);
+		g.drawImage(ImageLoader.getbSpawn(), 0, 0, panel);
+		g.drawImage(ImageLoader.getgSpawn(), (LevelIndex.LEVEL_WIDTH - 3) * Block.BLOCK_SIZE, (LevelIndex.LEVEL_HEIGHT - 3) * Block.BLOCK_SIZE, panel);
+		for(Bullet b: shells){
+			drawGameObject(g, b);
+		}
+		for(Blood b: bloods){
+			drawGameObject(g, b);
+		}
+		for (GameObject o: gameTypeExtras) {
+			if (o.getIsVisible() == true) {
+				drawGameObject(g,o);
+			}
+		}
+
+		for (Block b: blockList) {
+			drawGameObject(g, b);
+		}
+		System.out.println(projectileList);
+		for (Projectile p: projectileList) {
+			drawGameObject(g,p);
+		}
+
+		Font font = new Font("Verdana", Font.BOLD, 12);
+		g.setFont(font);
+		
+		for (Player p:playerList){
+			if (p.getIsDead() == false) {
+				if(p.getHasFlag()){
+					g.drawImage(ImageLoader.getHalo(p.getFlag().getTeam()), (int)(p.getPoint().getX() - (Player.PLAYER_WIDTH * 1.5)), (int)(p.getPoint().getY() - (Player.PLAYER_HEIGHT * 1.5)), panel);
+				}
+				drawGameObject(g,p);
+
+				g.setColor(Color.WHITE);
+				g.fillRect((int) (p.getPoint().getX() - Block.BLOCK_SIZE * 2 / 3), (int)(p.getPoint().getY() + Block.BLOCK_SIZE * 3 /7), Block.BLOCK_SIZE * 14/8,Block.BLOCK_SIZE * 1/4);
+				g.setColor(Color.BLACK);
+				g.drawString("Health: " + p.getHealth(),(int) (p.getPoint().getX() - Block.BLOCK_SIZE * 2 / 3), (int)(p.getPoint().getY() + Block.BLOCK_SIZE * 2 /3));	
+			}
+		}
+
+
+		Font font2 = new Font("Verdana", Font.BOLD, 24);
+		g.setFont(font2);
+
+		g.drawString("Blue Score: " + gameType.getScoreBlue() + "  Green Score " + gameType.getScoreGreen(), Block.BLOCK_SIZE * 3, 25);
+		
+		Font font3 = new Font("Verdana", Font.BOLD, 58);
+		g.setFont(font3);
+		
+		if (winningTeam != null) { 
+			g.drawString(winningTeam + " Wins!", ((LevelIndex.LEVEL_WIDTH / 2) - 4) * Block.BLOCK_SIZE, LevelIndex.LEVEL_HEIGHT / 2 * Block.BLOCK_SIZE);
+		}
+		
+	}
+
+	/**
+	 * Draws the game object
+	 * 
+	 * @param g
+	 *            The graphics image
+	 * @param gameObject
+	 *            The object to be drawn
+	 * @param box
+	 *            The box that holds the size of the image
+	 */
+	protected void drawGameObject(Graphics g, Drawable gameObject) { // TODO
+
+		// Vector2f v1 = gameObject.getCoordinates();
+		AffineTransform backup = ((Graphics2D) g).getTransform();
+		AffineTransform trans = new AffineTransform();
+		trans.rotate(-gameObject.getRotation(), gameObject.getCoordinates()
+				.getX(), gameObject.getCoordinates().getY()); // the points to
+		// rotate around
+
+		((Graphics2D) g).transform(trans);
+		Image image = gameObject.getImage();
+		if (gameObject.needsToFlip()) {
+			g.drawImage(image,(int) gameObject.getCoordinates().getX()
+					+ image.getWidth(panel), (int) gameObject
+					.getCoordinates().getY(), -(image.getWidth(panel)),
+					image.getHeight(panel), panel);
+		} else {
+			g.drawImage(image, (int) gameObject.getCoordinates().getX(),
+					(int) gameObject.getCoordinates().getY(), panel); // the
+			// actual
+			// location
+			// of
+			// the
+			// object
+		}
+
+		((Graphics2D) g).setTransform(backup); // restore previous transform
+	}
+
+	public void checkFiring() {
+		for (Player p:playerList) {
+			ArrayList<Player> firingAt = p.lateralAimAndInRange(playerList);
+			ArrayList<Player> clearShot = findClearShotPlayers(firingAt, p);
+			ArrayList<Player> inRange = new ArrayList<Player>();
+			inRange.add(p.getClosestPlayer(clearShot));
+			if (inRange != null) {
+				p.fire(inRange);
+			}
+		}
+	}
+
+	public ArrayList<Player> findClearShotPlayers(ArrayList<Player> playersInLateralRange, Player shooter) {
+		ArrayList<Player> clearShotPlayers = new ArrayList<Player>();
+		if (playersInLateralRange != null) {
+			for (Player p: playersInLateralRange) {
+				boolean canAddPlayertoList = true;
+
+
+				for (Block b: blockList) {
+
+					java.awt.geom.Rectangle2D rect = b.getJavaRectangle();
+					java.awt.geom.Line2D line = new Line2D.Double(shooter.getPoint().getX(),shooter.getPoint().getY(),p.getPoint().getX(),p.getPoint().getY());
+					if (line.intersects(rect)) {
+						canAddPlayertoList = false;
+						break;
+					}
+
+				}
+
+				if (canAddPlayertoList == true) {//if player can be shot at directly
+					clearShotPlayers.add(p);
+				}
+			}
+
+		}
+
+		return clearShotPlayers;
+	}
+
+	public void addBullet(Bullet bullet){
+		//TODO
+		if(shells.size() >= maxNumBullets){
+			shells.remove(0);
+		}
+		shells.add(bullet);
+	}
+	
+	public void addBlood(Blood blood){
+		if(bloods.size() >= maxNumBloods){
+			bloods.remove(0);
+		}
+		bloods.add(blood);
+	}
+
+	public void checkPlayerCollisions(Player player) {
+		boolean canMoveX = true;
+		boolean canMoveY = true;
+
+		for (Player p: playerList) {
+			/*if (!player.equals(p) && p.getTeam() != player.getTeam()) {
+				Circle c = new Circle(player.getNextMove(),Player.PLAYER_RADIUS);
+				if (CollisionDetector.areColliding(c,p.getCircle())) {
+					canMoveX = false;
+					canMoveY = false;
+				}
+			}*/
+			Circle c = new Circle(player.getNextMove(),Player.PLAYER_RADIUS);
+			if (CollisionDetector.areColliding(c,p.getCircle())) {//is hitting a player
+				double rotation = player.getPoint().getAngleBetween(p.getPoint());
+
+				if (0 < rotation && rotation < Math.PI / 4) {//player is to the left
+					canMoveX = false;
+				}
+				if (Math.PI / 4 < rotation && rotation < Math.PI * 3/4) {//player is above
+					canMoveY = false;
+				}
+				if (Math.PI * 3/4 < rotation && rotation < Math.PI * 5/4) {//player to the right
+					canMoveX = false;
+				}
+				if (Math.PI * 5/4 < rotation && rotation < Math.PI * 7/4) {//player is below
+					canMoveY = false;
+				}
+				if (Math.PI * 7/4 < rotation) {
+					canMoveX = false;
+				}
+
+			}
+
+		}
+
+		for (Block b: blockList) {
+			Circle c = new Circle(player.getNextMove(),Player.PLAYER_RADIUS);
+			if (CollisionDetector.areColliding(c,b.getRectangle())) {//is hitting a wall
+				double rotation = player.getPoint().getAngleBetween(b.getMiddle());
+
+				if (0 < rotation && rotation < Math.PI / 4) {//player is to the left
+					canMoveX = false;
+				}
+				if (Math.PI / 4 < rotation && rotation < Math.PI * 3/4) {//player is above
+					canMoveY = false;
+				}
+				if (Math.PI * 3/4 < rotation && rotation < Math.PI * 5/4) {//player to the right
+					canMoveX = false;
+				}
+				if (Math.PI * 5/4 < rotation && rotation < Math.PI * 7/4) {//player is below
+					canMoveY = false;
+				}
+				if (Math.PI * 7/4 < rotation) {
+					canMoveX = false;
+				}
+
+			}
+		}
+
+		java.awt.geom.Ellipse2D circle = new Ellipse2D.Double(player.getNextMove().getX(),player.getNextMove().getY(),Player.PLAYER_RADIUS,Player.PLAYER_RADIUS);
+
+		java.awt.geom.Rectangle2D lineLeft = new Rectangle2D.Double(0,0,1, LevelIndex.LEVEL_HEIGHT * Block.BLOCK_SIZE);
+		if (circle.intersects(lineLeft)) {
+			canMoveX = false;
+		}
+
+		java.awt.geom.Rectangle2D lineRight = new Rectangle2D.Double(LevelIndex.LEVEL_WIDTH * Block.BLOCK_SIZE,0,1, LevelIndex.LEVEL_HEIGHT * Block.BLOCK_SIZE);
+		if (circle.intersects(lineRight)) {
+			canMoveX = false;
+		}
+
+		java.awt.geom.Rectangle2D lineTop = new Rectangle2D.Double(0,0,LevelIndex.LEVEL_WIDTH * Block.BLOCK_SIZE,1);
+		if (circle.intersects(lineTop)) {
+			canMoveY = false;
+		}
+
+		java.awt.geom.Rectangle2D lineBot = new Rectangle2D.Double(0,LevelIndex.LEVEL_HEIGHT * Block.BLOCK_SIZE,LevelIndex.LEVEL_WIDTH * Block.BLOCK_SIZE,1);
+		if (circle.intersects(lineBot)) {
+			canMoveY = false;
+		}
+
+		//checks to make sure not moving into spawn zone
+		java.awt.geom.Rectangle2D topLeftSpawn = new Rectangle2D.Double(0,0,3 * Block.BLOCK_SIZE,3 * Block.BLOCK_SIZE);
+		if (circle.intersects(topLeftSpawn) && player.getTeam() != 0) {//player will collide with spawn and is not on blue team
+			if (player.getPoint().getY() < Block.BLOCK_SIZE * 3) {//y is not preventing it, so must be on the right side
+				canMoveX = false;
+			}
+			if (player.getPoint().getX() < Block.BLOCK_SIZE * 3) {//X is not a factor, must be underneath the spawn trying to move up
+				canMoveY = false;
+				
+			}
+		}
+		
+		java.awt.geom.Rectangle2D botRightSpawn = new Rectangle2D.Double((LevelIndex.LEVEL_WIDTH - 3) * Block.BLOCK_SIZE,(LevelIndex.LEVEL_HEIGHT - 3) * Block.BLOCK_SIZE,3 * Block.BLOCK_SIZE,3 * Block.BLOCK_SIZE);
+		if (circle.intersects(botRightSpawn) && player.getTeam() !=1) {
+			if (player.getPoint().getY() > Block.BLOCK_SIZE * (LevelIndex.LEVEL_HEIGHT - 3)) {
+				canMoveX = false;
+			}
+			if (player.getPoint().getX() > Block.BLOCK_SIZE * (LevelIndex.LEVEL_WIDTH - 3)) {
+				canMoveY = false;
+			}
+		}
+		
+
+		if (canMoveX == true) {
+			player.moveX();
+		}
+		if (canMoveY == true) {
+			player.moveY();
+		}
+	}
+
+	public int sign(double num) {//return -1 if number is negative
+		if (num < 0) {
+			return -1;
+		}
+		return 1;
+	}
+
+	public int getOctant(Coordinate origin, Coordinate point) {
+		double angle = origin.getAngleBetween(point);
+		if (angle > 0 && angle < Math.PI / 4) {
+			return 0;
+		}
+		else if (angle > Math.PI / 4 && angle < Math.PI / 2) {
+			return 1;
+		}
+		else if (angle > Math.PI / 2 && angle < Math.PI * 3 / 4) {
+			return 2;
+		}
+		else if (angle > Math.PI *3 / 4 && angle < Math.PI) {
+			return 3;
+		}
+		else if (angle > Math.PI && angle < Math.PI *5 / 4) {
+			return 4;
+		}
+		else if (angle > Math.PI *5 / 4 && angle < Math.PI * 6 / 4) {
+			return 5;
+		}
+		else if (angle > Math.PI *6 / 4 && angle < Math.PI * 7 / 4) {
+			return 6;
+		}
+		else if (angle > Math.PI *7 / 4 && angle < Math.PI * 8 / 4) {
+			return 7;
+		}
+
+		return 0;
+	}
+
+	public Coordinate switchToOctantZeroFrom(int octant, Coordinate point) {
+		switch (octant) {
+		case 0: return new Coordinate(point.getX(),point.getY());
+		case 1: return new Coordinate(point.getY(),point.getX());
+		case 2: return new Coordinate(point.getY(),-point.getX());
+		case 3: return new Coordinate(-point.getX(),point.getY());
+		case 4: return new Coordinate(-point.getX(),-point.getY());
+		case 5: return new Coordinate(-point.getY(),-point.getX());
+		case 6: return new Coordinate(-point.getY(),point.getX());
+		case 7: return new Coordinate(point.getX(),-point.getY());
+		}
+		return null;
+	}
+
+	public Coordinate switchFromOctantZeroTo(int octant, Coordinate point) {
+		switch (octant) {
+		case 0: return new Coordinate(point.getX(),point.getY());
+		case 1: return new Coordinate(point.getY(),point.getX());
+		case 2: return new Coordinate(-point.getY(),point.getX());
+		case 3: return new Coordinate(-point.getX(),point.getY());
+		case 4: return new Coordinate(-point.getX(),-point.getY());
+		case 5: return new Coordinate(-point.getY(),-point.getX());
+		case 6: return new Coordinate(point.getY(),-point.getX());
+		case 7: return new Coordinate(point.getX(),-point.getY());
+		}
+		return null;
+	}
+
+	public void checkSpawn() {
+		for (Player p: playerList) {
+			if (p.getIsDead() == true) {
+				if (System.currentTimeMillis() - p.getDeathTime() > p.getSpawnTime()) {
+					p.setIsDead(false);
+				}
+			}
+		}
+	}
+	
+	public void setWinningTeam(String s) {
+		winningTeam = s;
+	}
+	
+	public Projectile checkProjectileCollisions(Projectile projectile) {
+		Shape next = projectile.getShape();
+		boolean canMove = true;
+		
+		for (Player p: playerList) {
+			if (CollisionDetector.areColliding(p.getCircle(),projectile.getShape())) {
+				if (!projectile.self.equals(p))
+				projectile.haveCollision(p);
+				System.out.println("Gets to make sure its not self");
+				canMove = false;
+			}
+		}
+		
+		for (Block b: blockList) {
+			if (CollisionDetector.areColliding(b.getRectangle(),projectile.getShape())) {
+				projectile.haveCollision(b);
+				canMove = false;
+			}
+		}
+		
+		if (canMove) {
+			System.out.println("We're moving the bullet");
+			projectile.move();
+		}
+		else {//it hit something
+			return projectile;
+		}
+		return null;
+	}
+	
+	public void addProjectile(Projectile p) {
+		projectileList.add(p);
+	}
+	
+	public void checkProjectiles() {
+		ArrayList<Projectile> removal = new ArrayList<Projectile>();
+		
+		for (Projectile p: projectileList) {
+			Projectile toBeRemoved = checkProjectileCollisions(p);
+			if ( toBeRemoved != null) {
+				removal.add(toBeRemoved);
+			}
+		}
+		
+		for (Projectile p: removal) {
+			projectileList.remove(p);
+		}
+	}
+	
+}

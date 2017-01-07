@@ -1,0 +1,84 @@
+package gameobjects;
+
+public class PlayerStats {
+
+	//Scout
+	public static final double SCOUT_HEALTH = 125;
+	public static final double SCOUT_DAMAGE = 65;
+	public static final double SCOUT_FIRE_RATE = 1000;
+	public static final double SCOUT_SPEED = .24 * Block.BLOCK_SIZE;
+	public static final double SCOUT_RANGE = Player.PLAYER_WIDTH * 6;
+	public static final double SCOUT_ROTATE_AMOUNT = Math.PI/18;
+	public static final double SCOUT_ACCURACY = .85;
+	
+	//Heavy
+	public static final double HEAVY_HEALTH = 250;
+	public static final double HEAVY_DAMAGE = 13;
+	public static final double HEAVY_FIRE_RATE = 175;
+	public static final double HEAVY_SPEED = .12 * Block.BLOCK_SIZE;
+	public static final double HEAVY_RANGE = Player.PLAYER_WIDTH * 8;
+	public static final double HEAVY_ROTATE_AMOUNT = Math.PI/32;
+	public static final double HEAVY_ACCURACY = .75;
+	
+	//Assault
+	public static final double ASSAULT_HEALTH = 200;
+	public static final double ASSAULT_DAMAGE = 25;
+	public static final double ASSAULT_FIRE_RATE = 400;
+	public static final double ASSAULT_SPEED = .18 * Block.BLOCK_SIZE;
+	public static final double ASSAULT_RANGE = Player.PLAYER_WIDTH * 10;
+	public static final double ASSAULT_ROTATE_AMOUNT = Math.PI/25;
+	public static final double ASSAULT_ACCURACY = .80;
+	
+	
+	public PlayerStats() {
+		
+	}
+	
+	public static void setPlayerStats(String className, Player p) {
+		if (className.equals("scout")) {
+			p.health = SCOUT_HEALTH;
+			p.damage = SCOUT_DAMAGE;
+			p.fireRate = SCOUT_FIRE_RATE;
+			p.speed = SCOUT_SPEED;
+			p.range = SCOUT_RANGE;
+			p.rotateAmount = SCOUT_ROTATE_AMOUNT;
+			p.accuracy = SCOUT_ACCURACY;
+		}
+		else if (className.equals("heavy")) {
+			p.health = HEAVY_HEALTH;
+			p.damage = HEAVY_DAMAGE;
+			p.fireRate = HEAVY_FIRE_RATE;
+			p.speed = HEAVY_SPEED;
+			p.range = HEAVY_RANGE;
+			p.rotateAmount = HEAVY_ROTATE_AMOUNT;
+			p.accuracy = HEAVY_ACCURACY;
+		}
+		else if (className.equals("assault")) {
+			p.health = ASSAULT_HEALTH;
+			p.damage = ASSAULT_DAMAGE;
+			p.fireRate = ASSAULT_FIRE_RATE;
+			p.speed = ASSAULT_SPEED;
+			p.range = ASSAULT_RANGE;
+			p.rotateAmount = ASSAULT_ROTATE_AMOUNT;
+			p.accuracy = ASSAULT_ACCURACY;
+		}
+	}
+	
+	public static double getPlayerDamage(String player) {
+		if (player.equals("scout")) {
+			return SCOUT_DAMAGE;
+		}
+		else if (player.equals("heavy")) {
+			return HEAVY_DAMAGE;
+		}
+		else if (player.equals("assault")) {
+			return ASSAULT_DAMAGE;
+		}
+		return 0;
+	}
+	
+	public static double getPlayerBulletSpeed(String player) {
+		return 1;
+	}
+	
+}

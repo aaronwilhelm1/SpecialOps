@@ -1,0 +1,548 @@
+package visuals;
+import java.awt.Image;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+
+import javax.imageio.ImageIO;
+
+import gameobjects.Block;
+import gameobjects.Flag;
+import gameobjects.HealthPack;
+import gameobjects.Player;
+
+import gui.GUI;
+
+public class ImageLoader {
+
+	protected static ClassLoader loader = GUI.class.getClassLoader();
+
+	protected static Image[] gsoldierImages;
+	protected static Image[] bsoldierImages;
+	protected static Image[] gscoutImages;
+	protected static Image[] bscoutImages;
+	protected static Image[] gheavyImages;
+	protected static Image[] bheavyImages;
+
+
+	protected static Image smallBoxImage;
+	protected static Image medBoxImage;
+	protected static Image largeBoxImage;
+	
+	protected static Image gspawnImage;
+	protected static Image bspawnImage;
+
+	protected static Image[] briefcaseTableImages;
+	protected static Image briefcaseImage;
+	protected static Image ghaloImage;
+	protected static Image bhaloImage;
+
+	protected static Image bulletImage;
+	protected static Image[] bloodImages;
+	protected static Image healthImage;
+
+	/**
+	 * Gets the images for the requested player
+	 * 
+	 * @param cName The class of the player
+	 * @return The images of the player
+	 */
+	public static Image[] getPlayerImage(String cName, int team) {
+		if(team == 0){
+			if (cName.equals("assault")) {
+				if (bsoldierImages == null) {
+					loadbSoldierImages();
+				}
+				return bsoldierImages;
+			} else if(cName.equals("scout")){
+				if (bscoutImages == null) {
+					loadbScoutImages();
+				}
+				return bscoutImages;
+			} else if(cName.equals("heavy")){
+				if (bheavyImages == null) {
+					loadbHeavyImages();
+				}
+				return bheavyImages;
+			} else{
+				System.out.println("Error loading player with the name " + cName);
+				if (bsoldierImages == null) {
+					loadbSoldierImages();
+				}
+				return bsoldierImages;
+			}
+		}else if(team == 1){
+			if (cName.equals("assault")) {
+				if (gsoldierImages == null) {
+					loadgSoldierImages();
+				}
+				return gsoldierImages;
+			} else if(cName.equals("scout")){
+				if (gscoutImages == null) {
+					loadgScoutImages();
+				}
+				return gscoutImages;
+			} else if(cName.equals("heavy")){
+				if (gheavyImages == null) {
+					loadgHeavyImages();
+				}
+				return gheavyImages;
+			} else {
+				System.out.println("Error loading player with the name " + cName);
+				if (gsoldierImages == null) {
+					loadgSoldierImages();
+				}
+				return gsoldierImages;
+			}
+		} else{
+			System.out.println("Error loading player with team number " + team);
+			return gsoldierImages;
+		}
+
+	}
+
+	/**
+	 * Gets the images for the box
+	 * 
+	 * @param cName The class of the player
+	 * @return The images of the player
+	 */
+	public static Image getBoxImage(int size) {
+		if(size == 1){
+			if(smallBoxImage == null){
+				loadSmallBoxImage();
+			}
+			return smallBoxImage;
+		} else if(size == 2){
+			if(medBoxImage == null){
+				loadMedBoxImage();
+			}
+			return medBoxImage;
+		} else {
+			if(largeBoxImage == null){
+				loadLargeBoxImage();
+			}
+			return largeBoxImage;
+		}
+
+	}
+
+	/**
+	 * Gets the images for the two versions of the briefcase table
+	 * Note: returns with briefcase, then without briefcase
+	 * 
+	 * @return The images of the player
+	 */
+	public static Image[] getBriefcaseTableImages() {
+
+		if (briefcaseTableImages == null) {
+			loadBriefcaseTableImages();
+		}
+		return briefcaseTableImages;
+	}
+
+	/**
+	 * Gets the image the briefcase
+	 * 
+	 * @return The image of the briefcase
+	 */
+	public static Image getBriefcaseImage() {
+
+		if (briefcaseImage == null) {
+			loadBriefcaseImage();
+		}
+		return briefcaseImage;
+	}
+	
+	/**
+	 * Gets the image the health
+	 * 
+	 * @return The image of the health
+	 */
+	public static Image getHealthImage() {
+
+		if (healthImage == null) {
+			loadHealthImage();
+		}
+		return healthImage;
+	}
+
+
+	/**
+	 * Gets the image of the bullet
+	 * 
+	 * @return The image of the bullet
+	 */
+	public static Image getBulletImage() {
+
+		if (bulletImage == null) {
+			loadBulletImage();
+		}
+		return bulletImage;
+	}
+
+	/**
+	 * Gets the images of the blood
+	 * 
+	 * @return The images of the blood
+	 */
+	public static Image[] getBloodImages() {
+
+		if (bloodImages == null) {
+			loadBloodImages();
+		}
+		return bloodImages;
+	}
+
+	/**
+	 * Gets the image for green spawn
+	 * 
+	 * @return The image of the green spawn
+	 */
+	public static Image getgSpawn() {
+
+		if (gspawnImage == null) {
+			loadgSpawnImage();
+		}
+		return gspawnImage;
+	}
+
+	/**
+	 * Gets the image for blue spawn
+	 * 
+	 * @return The image of the blue spawn
+	 */
+	public static Image getbSpawn() {
+
+		if (bspawnImage == null) {
+			loadbSpawnImage();
+		}
+		return bspawnImage;
+	}
+	
+	/**
+	 * Gets the image for halo
+	 * 
+	 * @return The image of the halo
+	 */
+	public static Image getHalo(int team) {
+		if(team == 0){
+			if (bhaloImage == null) {
+				loadbHaloImage();
+			}
+			return bhaloImage;
+		} else if(team == 1){
+			if (ghaloImage == null) {
+				loadgHaloImage();
+			}
+			return ghaloImage;
+		} else{
+			System.out.println("No Team with Number " + team);
+			if (bhaloImage == null) {
+				loadbHaloImage();
+			}
+			return bhaloImage;
+		}
+	}
+
+	/* Loads the image for the green soldier
+	 */
+	private static void loadgSoldierImages() {
+		gsoldierImages = new Image[5];
+		for(int j = 0; j < 5; j++)
+			try {
+
+				gsoldierImages[j] = ImageIO.read(loader.getResource("\\images\\gsoldier" + j + ".png"));
+
+				gsoldierImages[j] = gsoldierImages[j].getScaledInstance((int)(Player.PLAYER_WIDTH * 1.5), Player.PLAYER_HEIGHT, 10);
+
+			} catch (IOException f) {
+				try{
+
+				     // PrintStream methods need to be in a try-catch block
+
+				PrintStream p = new PrintStream(new FileOutputStream(new File("trace.txt")));
+
+				p.println("got here");
+
+				f.printStackTrace(p);
+
+				} 
+
+				catch(Exception g)
+
+				{ 
+
+				} 
+
+			}
+	}
+
+	/* Loads the image for the blue soldier
+	 */
+	private static void loadbSoldierImages() {
+		bsoldierImages = new Image[5];
+		for(int j = 0; j < 5; j++)
+			try {
+
+				bsoldierImages[j] = ImageIO.read(loader.getResource("\\images\\bsoldier" + j + ".png"));
+
+				bsoldierImages[j] = bsoldierImages[j].getScaledInstance((int)(Player.PLAYER_WIDTH * 1.5), Player.PLAYER_HEIGHT, 10);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+
+	/* Loads the image for the green scout
+	 */
+	private static void loadgScoutImages() {
+		gscoutImages = new Image[5];
+		for(int j = 0; j < 5; j++)
+			try {
+
+				gscoutImages[j] = ImageIO.read(loader.getResource("\\images\\gscout" + j + ".png"));
+
+				gscoutImages[j] = gscoutImages[j].getScaledInstance((int)(Player.PLAYER_WIDTH * 1.5), Player.PLAYER_HEIGHT, 10);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+
+	/* Loads the image for the blue scout
+	 */
+	private static void loadbScoutImages() {
+		bscoutImages = new Image[5];
+		for(int j = 0; j < 5; j++)
+			try {
+
+				bscoutImages[j] = ImageIO.read(loader.getResource("\\images\\bscout" + j + ".png"));
+
+				bscoutImages[j] = bscoutImages[j].getScaledInstance((int)(Player.PLAYER_WIDTH * 1.5), Player.PLAYER_HEIGHT, 10);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+	
+	/* Loads the image for the green heavy
+	 */
+	private static void loadgHeavyImages() {
+		gheavyImages = new Image[5];
+		for(int j = 0; j < 5; j++)
+			try {
+
+				gheavyImages[j] = ImageIO.read(loader.getResource("\\images\\gheavy" + j + ".png"));
+
+				gheavyImages[j] = gheavyImages[j].getScaledInstance((int)(Player.PLAYER_WIDTH * 1.5), Player.PLAYER_HEIGHT, 10);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+
+	/* Loads the image for the blue heavy
+	 */
+	private static void loadbHeavyImages() {
+		bheavyImages = new Image[5];
+		for(int j = 0; j < 5; j++)
+			try {
+
+				bheavyImages[j] = ImageIO.read(loader.getResource("\\images\\bheavy" + j + ".png"));
+
+				bheavyImages[j] = bheavyImages[j].getScaledInstance((int)(Player.PLAYER_WIDTH * 1.5), Player.PLAYER_HEIGHT, 10);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+
+	/* Loads the image for the small box
+	 * 
+	 */
+	private static void loadSmallBoxImage() {
+
+		try {
+
+			smallBoxImage = ImageIO.read(loader.getResource("src\\images\\box" + ".png"));
+
+			smallBoxImage = smallBoxImage.getScaledInstance(Block.BLOCK_SIZE, Block.BLOCK_SIZE, 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/* Loads the image for the medium box
+	 * 
+	 */
+	private static void loadMedBoxImage() {
+
+		try {
+
+			medBoxImage = ImageIO.read(loader.getResource("images\\box" + ".png"));
+
+			medBoxImage = medBoxImage.getScaledInstance(Block.BLOCK_SIZE * 2, Block.BLOCK_SIZE * 2, 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/* Loads the image for the medium box
+	 * 
+	 */
+	private static void loadLargeBoxImage() {
+
+		try {
+
+			largeBoxImage = ImageIO.read(loader.getResource("images\\box" + ".png"));
+
+			largeBoxImage = largeBoxImage.getScaledInstance(Block.BLOCK_SIZE * 3, Block.BLOCK_SIZE * 3, 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/* Loads the images for the briefcase table
+	 * 
+	 */
+	private static void loadBriefcaseTableImages() {
+
+		briefcaseTableImages = new Image[2];
+		for(int j = 0; j < 2; j++)
+			try {
+				if(j == 0){
+					briefcaseTableImages[j] = ImageIO.read(loader.getResource("\\images\\briefcaseandtable" + ".png"));
+				} else{
+					briefcaseTableImages[j] = ImageIO.read(loader.getResource("\\images\\table" + ".png"));
+				}
+
+
+				briefcaseTableImages[j] = briefcaseTableImages[j].getScaledInstance(Block.BLOCK_SIZE, Block.BLOCK_SIZE, 10);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+
+	/* Loads the image for the briefcase
+	 * 
+	 */
+	private static void loadBriefcaseImage() {
+
+		try {
+			briefcaseImage = ImageIO.read(loader.getResource("\\images\\briefcase" + ".png"));
+			briefcaseImage = briefcaseImage.getScaledInstance((int)(Flag.WIDTH), (int)(Flag.HEIGHT), 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+	
+	/* Loads the image for the health
+	 * 
+	 */
+	private static void loadHealthImage() {
+
+		try {
+			healthImage = ImageIO.read(loader.getResource("\\images\\health" + ".png"));
+			healthImage = healthImage.getScaledInstance((int)(HealthPack.WIDTH), (int)(HealthPack.HEIGHT), 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/* Loads the images for the blood
+	 * 
+	 */
+	private static void loadBloodImages() {
+		bloodImages = new Image[3];
+		try {
+			for(int j = 0; j < 3; j++){
+				bloodImages[j] = ImageIO.read(loader.getResource("\\images\\blood" + j +".png"));
+				bloodImages[j] = bloodImages[j].getScaledInstance((int)(.24 *Block.BLOCK_SIZE), (int)(.24 *Block.BLOCK_SIZE), 10);
+
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/* Loads the image for the bullet
+	 * 
+	 */
+	private static void loadBulletImage() {
+
+		try {
+			bulletImage = ImageIO.read(loader.getResource("\\images\\bullet" + ".png"));
+			bulletImage = bulletImage.getScaledInstance((int)(.08 *Block.BLOCK_SIZE), (int)(.24 *Block.BLOCK_SIZE), 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/* Loads the image for the green spawn
+	 * 
+	 */
+	private static void loadgSpawnImage() {
+
+		try {
+			gspawnImage = ImageIO.read(loader.getResource("\\images\\gspawn" + ".png"));
+			gspawnImage = gspawnImage.getScaledInstance((int)(3 *Block.BLOCK_SIZE), (int)(3 *Block.BLOCK_SIZE), 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/* Loads the image for the blue spawn
+	 * 
+	 */
+	private static void loadbSpawnImage() {
+
+		try {
+			bspawnImage = ImageIO.read(loader.getResource("\\images\\bspawn" + ".png"));
+			bspawnImage = bspawnImage.getScaledInstance((int)(3 *Block.BLOCK_SIZE), (int)(3 *Block.BLOCK_SIZE), 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/* Loads the image for the green halo
+	 * 
+	 */
+	private static void loadgHaloImage() {
+
+		try {
+			ghaloImage = ImageIO.read(loader.getResource("\\images\\ghalo" + ".png"));
+			ghaloImage = ghaloImage.getScaledInstance((int)(3 *Player.PLAYER_WIDTH), (int)(3 *Player.PLAYER_WIDTH), 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/* Loads the image for the blue halo
+	 * 
+	 */
+	private static void loadbHaloImage() {
+
+		try {
+			bhaloImage = ImageIO.read(loader.getResource("\\images\\bhalo" + ".png"));
+			bhaloImage = bhaloImage.getScaledInstance((int)(3 *Player.PLAYER_WIDTH), (int)(3 *Player.PLAYER_WIDTH), 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+}

@@ -1,0 +1,492 @@
+package gameobjects;
+import java.awt.Image;
+import java.awt.Point;
+import java.util.ArrayList;
+
+import javax.swing.ImageIcon;
+
+import geometry.Circle;
+import geometry.Coordinate;
+import geometry.Rectangle;
+import visuals.Animation;
+import visuals.AnimationLoader;
+import visuals.Drawable;
+import visuals.ImageLoader;
+
+public class Player implements Drawable{
+	//these values may be concatenated based upon what Block.BLOCK_SIZE
+	public static final int PLAYER_RADIUS = (int) ((0.8 * Block.BLOCK_SIZE) / 2);
+	public static final int PLAYER_WIDTH = Player.PLAYER_RADIUS * 2;
+	public static final int PLAYER_HEIGHT = Player.PLAYER_RADIUS * 2;
+	public static final long PLAYER_DOUBLE_TAP_DELAY = 100;
+
+	double speed;
+	double backwardsSpeedRatio;
+	double accuracy;
+	double damage;
+	double health;
+	double fireRate;//time, in milliseconds, to fire again
+	long lastFire;//time, in milliseconds, since last fire
+	Coordinate point;
+	private Image soldier;
+	int playerNum;
+	boolean isPressedRight;
+	boolean isPressedLeft;
+	private boolean isStanding;
+	boolean waitingDTRight;//true if waiting on a double tap right
+	boolean waitingDTLeft;//true if waiting on a double tap left
+	boolean isStrafingRight;
+	boolean isStrafingLeft;
+	boolean isBackwards;
+	double rotation;
+	double range;
+	long timeStrafing;//time, in milliseconds, of beginning the strafe
+	boolean canSetTimeOfTap;//true if time of tap can be set i.e. not being held down 
+	long timeOfTap;//Time, in milliseconds, of the first press of a button
+	double rotateAmount;//Amount, in radians, that the player can rotate in one tick
+	double lateralRange;//is only half i.e. if equal to pi/4, then could see 180 degrees
+	Circle body;
+	private Coordinate spawnPoint;
+	private boolean hasFlag;
+	private Flag flag;
+	private World world;
+	
+	private boolean isDead;
+	
+	private long spawnTime;//duration, in milliseconds, of spawn
+	private long deathTime;// time, in milliseconds of death
+	
+	private String className;
+	
+	private int team;//0 = blue, 1 = green
+	
+	private Image[] images;
+	private Animation walkAnimation; //current animation of soldier
+	
+	public Player(int num, int teamColor, World w) {
+
+
+//		point = new Coordinate(100,100);
+		//ClassLoader cldr = getClass().getClassLoader();
+		//ImageIcon soldierIcon = new ImageIcon(cldr.getResource("soldier.png"));
+		//soldier = soldierIcon.getImage();
+		if (num == 0) {
+			point = new Coordinate(Block.BLOCK_SIZE,Block.BLOCK_SIZE);
+			spawnPoint = new Coordinate(Block.BLOCK_SIZE,Block.BLOCK_SIZE);
+			rotation = 0;
+			className = PlayerSelection.getClassString(PlayerSelection.pointer0);
+		}
+		else if (num ==1) {
+			point = new Coordinate(Block.BLOCK_SIZE *(LevelIndex.LEVEL_WIDTH - 2),Block.BLOCK_SIZE * (LevelIndex.LEVEL_HEIGHT - 1));
+			spawnPoint = new Coordinate(Block.BLOCK_SIZE *(LevelIndex.LEVEL_WIDTH - 2),Block.BLOCK_SIZE * (LevelIndex.LEVEL_HEIGHT - 1));
+			rotation = Math.PI;
+			className = PlayerSelection.getClassString(PlayerSelection.pointer1);
+	//		point = new Coordinate((Block.BLOCK_SIZE * LevelIndex.LEVEL_HEIGHT )- 100, (Block.BLOCK_SIZE * LevelIndex.LEVEL_WIDTH) - 100);
+		}
+		else if (num == 2) {
+			point = new Coordinate(Block.BLOCK_SIZE * 2,Block.BLOCK_SIZE * 2);
+			spawnPoint = new Coordinate(Block.BLOCK_SIZE * 2,Block.BLOCK_SIZE * 2);
+			rotation = 0;
+			className = PlayerSelection.getClassString(PlayerSelection.pointer2);
+		}
+		else if (num ==3) {
+			point = new Coordinate(Block.BLOCK_SIZE *(LevelIndex.LEVEL_WIDTH - 2),Block.BLOCK_SIZE * (LevelIndex.LEVEL_HEIGHT - 2));
+			spawnPoint = new Coordinate(Block.BLOCK_SIZE *(LevelIndex.LEVEL_WIDTH - 2),Block.BLOCK_SIZE * (LevelIndex.LEVEL_HEIGHT - 2));
+			rotation = Math.PI;
+			className = PlayerSelection.getClassString(PlayerSelection.pointer3);
+
+	//		point = new Coordinate((Block.BLOCK_SIZE * LevelIndex.LEVEL_HEIGHT )- 100, (Block.BLOCK_SIZE * LevelIndex.LEVEL_WIDTH) - 100);
+		}
+		else if (num == 4) {
+			point = new Coordinate(Block.BLOCK_SIZE * 1/2,Block.BLOCK_SIZE * 2);
+			spawnPoint = new Coordinate(Block.BLOCK_SIZE * 1/2,Block.BLOCK_SIZE * 2);
+			rotation = 0;
+			className = PlayerSelection.getClassString(PlayerSelection.pointer4);
+
+		}
+		else if (num == 5) {
+			point = new Coordinate(Block.BLOCK_SIZE *(LevelIndex.LEVEL_WIDTH -1),Block.BLOCK_SIZE * ((double)LevelIndex.LEVEL_HEIGHT - 1.5));
+			spawnPoint = new Coordinate(Block.BLOCK_SIZE *(LevelIndex.LEVEL_WIDTH -1),Block.BLOCK_SIZE * ((double)LevelIndex.LEVEL_HEIGHT - 1.5));
+			rotation = Math.PI;
+			className = PlayerSelection.getClassString(PlayerSelection.pointer5);
+
+	//		point = new Coordinate((Block.BLOCK_SIZE * LevelIndex.LEVEL_HEIGHT )- 100, (Block.BLOCK_SIZE * LevelIndex.LEVEL_WIDTH) - 100);
+		}
+		
+		playerNum = num;
+		lateralRange = Math.PI / 8;
+		body = new Circle(point,Player.PLAYER_RADIUS);
+		lastFire = 0;
+		timeStrafing = 0;
+		isStanding = true;
+		hasFlag = false;
+		flag = null;
+		team = teamColor;
+		backwardsSpeedRatio = .75;
+		PlayerStats.setPlayerStats(className, this);
+		spawnTime = 5000;
+		isDead = false;
+		setImages();
+		world = w;
+	}
+	
+	public ArrayList<Player> lateralAimAndInRange(ArrayList<Player> pList) {//returns null if no players able to be shot; otherwise returns player to be shot
+		ArrayList<Player> playersInLateralRange = new ArrayList<Player>();
+		for (Player p:pList) {//First determine players who are in lateralRange
+			if (!p.equals(this) && p.getTeam() != team){
+				double angleDifference = Math.abs(rotation - point.getAngleBetween(p.getPoint()));
+				if (angleDifference < lateralRange || (2 * Math.PI) - angleDifference < lateralRange) {
+					if (p.getPoint().getDistanceBetween(point) < range) {
+						playersInLateralRange.add(p);
+					}
+				}
+			}
+		}
+		
+		return playersInLateralRange;
+	}
+	
+
+		
+	public Player getClosestPlayer(ArrayList<Player> clearShotPlayers) {
+		
+		if (clearShotPlayers != null){
+		Player closest = null;
+		double distance = Double.MAX_VALUE;
+		for (Player p: clearShotPlayers) {//Second find the closest player - pyro class may skip this
+			double newDistance = p.getPoint().getDistanceBetween(point);
+			if (newDistance < distance) {
+				distance = newDistance;
+				closest = p;
+			}
+		}
+		
+		if (distance < range) {
+			return closest;
+		}
+		}
+		return null;
+	}
+	
+	public void fire(ArrayList<Player> firingAt) {
+		if (point.getX() > Block.BLOCK_SIZE * 3 || point.getY() > Block.BLOCK_SIZE * 3) {//checks to see if the shooter is in top left spawn zone
+			if (point.getX() < Block.BLOCK_SIZE * (LevelIndex.LEVEL_WIDTH - 3) || point.getY() < Block.BLOCK_SIZE * (LevelIndex.LEVEL_HEIGHT - 3)) {//checks to see if the shooter is in bottom right spawn zone
+				if (firingAt != null){
+					for (Player p: firingAt) {
+						if (p != null) {
+							if (System.currentTimeMillis() - lastFire > fireRate) {
+								if (p.getPoint().getX() > Block.BLOCK_SIZE * 3 || p.getPoint().getY() > Block.BLOCK_SIZE * 3) {//checks if in top left spawn zone
+									if (p.getPoint().getX() < Block.BLOCK_SIZE * (LevelIndex.LEVEL_WIDTH - 3) || p.getPoint().getY() < Block.BLOCK_SIZE * (LevelIndex.LEVEL_HEIGHT - 3)) {//checks if in bottom right spawn zone
+										world.addBullet(new Bullet(this.point.getX(), this.point.getY(), Math.PI*2 * Math.random(),
+										Math.random()*Math.PI*2, (Math.random()*(Bullet.MAX_LINSPEED - Bullet.MIN_LINSPEED)) + Bullet.MIN_LINSPEED, Math.random()*Bullet.MAX_ANGSPEED));
+										if (Math.random() < accuracy) {
+											world.addBlood(new Blood(p.getPoint().getX(), p.getPoint().getY(), Math.PI*2 * Math.random(),
+													Math.random()*Math.PI*2, (Math.random()*(Blood.MAX_LINSPEED - Blood.MIN_LINSPEED)) + Blood.MIN_LINSPEED, 0));
+										//	p.loseHealth(damage);
+											world.addProjectile(new Tracer(point, body, rotation, className, team, this));
+											lastFire = System.currentTimeMillis();
+											
+										}
+									}
+		
+								}
+								
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public void loseHealth(double damage) {
+		health = health - damage;
+		System.out.println("Player: " + playerNum + " Health: " + health);
+		if (health <= 0) {
+			deathTime = System.currentTimeMillis();
+			isDead = true;
+
+			
+			if (team == 0) {
+				rotation = 0;
+			}
+			else if (team == 1) {
+				rotation = Math.PI;
+			}
+			
+			if (hasFlag == true) {
+				hasFlag = false;
+				flag.setIsBeingHeld(false);
+				
+				flag.setPoint(new Coordinate(point.getX(),point.getY()));
+				
+				Coordinate[] b = new Coordinate[4];
+				b[0] = new Coordinate(point.getX(),point.getY());
+				b[1] = new Coordinate(point.getX() + Flag.WIDTH, point.getY());
+				b[2] = new Coordinate(point.getX() + Flag.WIDTH, point.getY() + Flag.HEIGHT);
+				b[3] = new Coordinate (point.getX(), point.getY() + Flag.HEIGHT);
+				
+				flag.setRect(new Rectangle(b, Flag.WIDTH, Flag.HEIGHT));
+				flag.setIsVisible(true);
+				
+			}
+			point.setX(spawnPoint.getX());
+			point.setY(spawnPoint.getY());
+			//System.out.println("Flag's point: " + flag.getPoint() + " Player's point: " + point);
+			
+			if (className == "scout") {
+				health = PlayerStats.SCOUT_HEALTH;
+			}
+			else if (className == "heavy"){
+				health = PlayerStats.HEAVY_HEALTH;
+			}
+			else if (className == "assault") {
+				health = PlayerStats.ASSAULT_HEALTH;
+			}
+		}
+		if (className == "scout" && health > PlayerStats.SCOUT_HEALTH) {
+			health = PlayerStats.SCOUT_HEALTH;
+		}
+		else if (className == "heavy" && health > PlayerStats.HEAVY_HEALTH){
+			health = PlayerStats.HEAVY_HEALTH;
+		}
+		else if (className == "assault" && health > PlayerStats.ASSAULT_HEALTH) {
+			health = PlayerStats.ASSAULT_HEALTH;
+		}
+		
+	}
+	
+	public Coordinate getPoint() {
+		return point;
+	}
+	
+	public int getPlayerNum() {
+		return playerNum;
+	}
+
+	
+	public void rotateLeft() {
+		rotation = rotation + rotateAmount;
+		if (rotation > Math.PI * 2) {
+			rotation = rotation - Math.PI * 2;
+		}
+	}
+	
+	public void rotateRight() {
+		rotation = rotation - rotateAmount;
+		if (rotation < 0) {
+			rotation = rotation + Math.PI*2;
+		}
+	}
+	
+	public void moveX() {
+		if (isBackwards) {
+			point.setX(-Math.cos(rotation)* speed * backwardsSpeedRatio+point.getX());
+		}
+		else {
+			point.setX(Math.cos(rotation)*speed+point.getX());
+		}
+	}
+	
+	public void moveY() {
+		if (isBackwards) {
+			point.setY(Math.sin(rotation)* speed * backwardsSpeedRatio+point.getY());
+			System.out.println("is being called to move y backwards");
+		}
+		else point.setY(-Math.sin(rotation)*speed+point.getY());
+	}
+	
+	public void strafeRight() {
+		point.setY(Math.cos(rotation)*speed+point.getY());
+		point.setX(Math.sin(rotation)*speed+point.getX());
+	}
+	
+	public void strafeLeft() {
+		point.setY(-Math.cos(rotation)*speed+point.getY());
+		point.setX(-Math.sin(rotation)*speed+point.getX());
+	}
+	
+	public void setIsPressedRight(boolean b) {
+		isPressedRight = b;
+	}
+	
+	public boolean getIsPressedRight() {
+		return isPressedRight;
+	}
+	
+	public void setIsPressedLeft(boolean b) {
+		isPressedLeft = b;
+	}
+	
+	public boolean getIsPressedLeft() {
+		return isPressedLeft;
+	}
+	
+	public void setIsStanding(boolean b) {
+		isStanding = b;
+	}
+
+	
+	public boolean getIsStanding() {
+		return isStanding;
+	}
+	
+
+	@Override
+	public void setImages() {
+		images = ImageLoader.getPlayerImage(className, team);
+		walkAnimation = AnimationLoader.getWalking(className, team);
+	}
+
+	@Override
+	public Image getImage() {
+		if(!isStanding){
+			return walkAnimation.getCurrentImage();
+		}
+		return images[0];
+	}
+
+	@Override
+	public Coordinate getCoordinates() {
+		//TRANSLATE TO ORIGIN
+		double x1 = -Player.PLAYER_RADIUS;
+		double y1 = -Player.PLAYER_RADIUS;
+
+		//APPLY ROTATION
+		double temp_x1 = x1 * Math.cos(-rotation) - y1 * Math.sin(-rotation);
+		double temp_y1 = x1 * Math.sin(-rotation) + y1 * Math.cos(-rotation);
+
+		//TRANSLATE BACK
+		return new Coordinate(temp_x1 + body.getCenter().getX(), temp_y1 + body.getCenter().getY());
+		
+	}
+	
+	public void setTimeOfTap() {
+		timeOfTap = System.currentTimeMillis();
+	}
+	
+	public long getTimeOfTap() {
+		return timeOfTap;
+	}
+	
+	public boolean getCanSetTimeOfTap() {
+		return canSetTimeOfTap;
+	}
+	
+	public void setCanSetTimeOfTap(boolean b) {
+		canSetTimeOfTap = b;
+	}
+	
+	public boolean getWaitingDTRight() {
+		return waitingDTRight;
+	}
+	
+	public void setWaitingDTRight(boolean b) {
+		waitingDTRight = b;
+	}
+	
+	public boolean getWaitingDTLeft() {
+		return waitingDTLeft;
+	}
+	
+	public void setWaitingDTLeft(boolean b) {
+		waitingDTLeft = b;
+	}
+	
+	public boolean getIsStrafingRight() {
+		return isStrafingRight;
+	}
+	
+	public void setIsStrafingRight(boolean b) {
+		isStrafingRight = b;
+	}
+	
+	public boolean getIsStrafingLeft() {
+		return isStrafingLeft;
+	}
+	
+	public void setIsStrafingLeft(boolean b) {
+		isStrafingLeft = b;
+	}
+	
+	public void setTimeStrafing() {
+		timeStrafing = System.currentTimeMillis();
+	}
+	
+	public boolean canStopStrafing() {
+		return (System.currentTimeMillis() - timeStrafing > 75);//tested for optimal time for starting when asked to and not ending too early
+	}
+	
+	public boolean equals(Player p) {
+		return (playerNum == p.getPlayerNum());
+	}
+	
+	public Coordinate getNextMove() {
+		if (isBackwards) {
+			return new Coordinate(-Math.cos(rotation)*speed+point.getX(),Math.sin(rotation)*speed+point.getY());
+		}
+		return new Coordinate(Math.cos(rotation)*speed+point.getX(),-Math.sin(rotation)*speed+point.getY());
+	}
+	
+	public Circle getCircle() {
+		return body;
+	}
+	
+	public boolean getHasFlag() {
+		return hasFlag;
+	}
+	
+	public void setHasFlag(boolean b) {
+		hasFlag = b;
+	}
+	
+	public int getTeam() {
+		return team;
+	}
+	
+	public Flag getFlag() {
+		return flag;
+	}
+	
+	public void setFlag(Flag f) {
+		flag = f;
+	}
+
+	@Override
+	public double getRotation() {
+		return rotation;
+	}
+
+	@Override
+	public boolean needsToFlip() {
+		return false;
+	}
+	
+	public double getHealth() {
+		return health;
+	}
+	
+	public boolean getIsDead() {
+		return isDead;
+	}
+	
+	public void setIsDead(boolean b) {
+		isDead = b;
+	}
+	
+	public long getDeathTime() {
+		return deathTime;
+	}
+	
+	public void setDeathTime() {
+		deathTime = System.currentTimeMillis();
+	}
+	
+	public long getSpawnTime() {
+		return spawnTime;
+	}
+	
+	public String getClassName() {
+		return className;
+	}
+}

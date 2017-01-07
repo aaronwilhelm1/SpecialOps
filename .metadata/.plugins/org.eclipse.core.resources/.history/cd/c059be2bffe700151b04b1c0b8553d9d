@@ -1,0 +1,59 @@
+package gameobjects;
+
+import java.awt.Image;
+
+import geometry.Circle;
+import geometry.Coordinate;
+import geometry.Shape;
+import visuals.ImageLoader;
+
+public class Tracer extends Projectile{
+	
+	Image image;
+
+	Tracer(Coordinate p, Circle s, double r, String player, int t, Player self) {
+		super(p,s, r, player, t, self);
+		setImages();
+		Image[] temp = new Image[1];
+		temp[0] = image;
+	}
+	
+	
+	@Override
+	public void setImages() {
+		image = ImageLoader.getBulletImage();
+	}
+
+	@Override
+	public Image getImage() {
+		return image;
+	}
+
+	@Override
+	public Coordinate getCoordinates() {
+		return new Coordinate(point.getX(), point.getY());
+	}
+
+	@Override
+	public double getRotation() {
+		return rotation;
+	}
+
+	@Override
+	public boolean needsToFlip() {
+		return false;
+	}
+	
+	public void haveCollision(Block b) {
+		
+	}
+	
+	public void haveCollision(Player p) {
+		//A13669304
+		System.out.println("the correct method is called");
+		if (super.team != p.getTeam()) {
+			System.out.println("Sees if on the same team");
+			p.loseHealth(super.damage);
+		}
+	}
+}
