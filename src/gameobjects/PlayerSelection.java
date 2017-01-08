@@ -110,6 +110,12 @@ public class PlayerSelection {
 	}
 	
 	public void keyReleased(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_M) {
+			Sound.setIsMute(!Sound.isMute);
+			if(Sound.isMute == false){
+				Sound.menu.resume();
+			}
+		}
 		if (e.getKeyCode() == KeyEvent.VK_S) {
 			teamPointerAdd(teamPointer0,0);
 		}

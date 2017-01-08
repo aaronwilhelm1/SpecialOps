@@ -6,6 +6,7 @@ import java.awt.event.KeyEvent;
 
 import gui.GUI;
 import gui.OurPanel;
+import visuals.Sound;
 import gui.GUI.State;
 
 public class MapSelection {
@@ -61,6 +62,12 @@ public class MapSelection {
 		}
 		if (e.getKeyCode() == KeyEvent.VK_C) {
 			pointerGTAdd(pointerGT,1);
+		}
+		if (e.getKeyCode() == KeyEvent.VK_M){
+			Sound.setIsMute(!Sound.isMute);
+			if(Sound.isMute == false){
+				Sound.menu.resume();
+			}
 		}
 		
 		if (e.getKeyCode() == KeyEvent.VK_SPACE) {

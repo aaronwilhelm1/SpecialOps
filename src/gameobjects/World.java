@@ -574,7 +574,9 @@ public class World{
 				player1 = p;
 			}
 		}
-		
+		if (e.getKeyCode() == KeyEvent.VK_M) {
+			Sound.setIsMute(!Sound.isMute);
+		}
 		if (e.getKeyCode() == KeyEvent.VK_S) {
 			player0.setIsStanding(true);
 			player0.setTimeOfTap();
