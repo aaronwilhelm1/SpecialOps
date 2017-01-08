@@ -1,8 +1,0 @@
-Coordinate playerLocation = ObstacleMap.nearestTile(player.getPoint());
-		path = finder.findPath(player,(int) (playerLocation.getX()),(int) (playerLocation.getY()), x, y);
-		if(path == null){
-			System.out.println(x + " " + y);
-			System.exit(0);
-		}
-		counter = 1;
-		updatePathStatus();
