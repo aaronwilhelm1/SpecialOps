@@ -1120,23 +1120,40 @@ public class World{
 
 		for (Block b: blockList) {
 			Circle c = new Circle(player.getNextMove(),Player.PLAYER_RADIUS);
-			if (CollisionDetector.areColliding(c,b.getRectangle())) {//is hitting a wall
+			if (CollisionDetector.areColliding(c,b.getRectangle())) {//is hitting a block
 				double rotation = player.getPoint().getAngleBetween(b.getMiddle());
-
-				if (0 < rotation && rotation < Math.PI / 4) {//player is to the left
-					canMoveX = false;
+				System.out.println(rotation);
+				if (0 < rotation && rotation < Math.PI / 4 && c.getCenter().getX() < b.getTopLeft().getX()) {//player is to the left and moving to the right
+					System.out.println("To the Left");
+					if (c.getCenter().getX() > player.getPoint().getX()){//player is not trying to move left
+						canMoveX = false;
+					}
 				}
-				if (Math.PI / 4 < rotation && rotation < Math.PI * 3/4) {//player is above
-					canMoveY = false;
+				if (Math.PI / 4 < rotation && rotation < Math.PI * 3/4) {//player is below
+
+					if (c.getCenter().getY() < player.getPoint().getY()){//player is not trying to move down 
+						canMoveY = false;
+					}
+
 				}
 				if (Math.PI * 3/4 < rotation && rotation < Math.PI * 5/4) {//player to the right
-					canMoveX = false;
+
+					if (c.getCenter().getX() < player.getPoint().getX()){//player is not trying to move right
+						canMoveX = false;
+					}
 				}
-				if (Math.PI * 5/4 < rotation && rotation < Math.PI * 7/4) {//player is below
-					canMoveY = false;
+				if (Math.PI * 5/4 < rotation && rotation < Math.PI * 7/4) {//player is top
+
+					if (c.getCenter().getY() > player.getPoint().getY()){//player is not trying to move up
+						canMoveY = false;
+					}
+					
 				}
-				if (Math.PI * 7/4 < rotation) {
-					canMoveX = false;
+				if (Math.PI * 7/4 < rotation) {//player is to the left
+
+					if (c.getCenter().getX() > player.getPoint().getX()){//player is not trying to move left
+						canMoveX = false;
+					}
 				}
 
 			}
