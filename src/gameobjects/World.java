@@ -778,7 +778,7 @@ public class World{
 			drawGameObject(g, b);
 		}
 
-		//drawAIDebug(g);
+//		drawAIDebug(g);
 
 		for (Trap t: trapList) {
 			if (t.getIsVisible() == true) {
@@ -1585,8 +1585,14 @@ public class World{
 			}
 			for(int x = 0; x < ObstacleMap.WIDTH; x++){
 				for(int y = 0; y < ObstacleMap.HEIGHT; y++){
-					g.setColor(Color.WHITE);
 					double influence = ea.getInfluenceAt(x, y);
+					if(influence < 0) {
+						g.setColor(Color.GREEN);
+					} else if(influence > 0) {
+						g.setColor(Color.BLUE);
+					} else {
+						g.setColor(Color.WHITE);
+					}
 					/*if(EnvironmentAnalyzer.highestinfluence < influence){
 					EnvironmentAnalyzer.highestinfluence = influence;
 					System.out.println(influence);

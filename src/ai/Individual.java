@@ -138,7 +138,8 @@ public class Individual {
 			path = finder.findPath(player,(int) (playerLocation.getX()),(int) (playerLocation.getY()), x, y);
 			if(path == null){
 				//System.out.println(x + " " + y);
-				System.exit(0);
+				System.out.println("ERROR: Individual computer couldn't find a path to (" + x + ", " + y + ")");
+				System.exit(1);
 			}
 			counter = 2; //could possibly make this one
 			updatePathStatus();

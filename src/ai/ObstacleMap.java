@@ -198,7 +198,7 @@ public class ObstacleMap implements TileBasedMap{
 			//draw vertical line
 			g.drawLine((int)(x * size), 0, (int)(x * size),Block.BLOCK_SIZE * LevelIndex.LEVEL_HEIGHT);
 		}
-		g.setColor(Color.GREEN);
+		g.setColor(Color.WHITE);
 		for(int y  = 0; y < HEIGHT; y++){
 			for(int x = 0; x < WIDTH; x++){
 				if(blocks[x][y] == null){
