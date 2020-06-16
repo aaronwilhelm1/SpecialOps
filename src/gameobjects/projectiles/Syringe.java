@@ -1,7 +1,6 @@
 package gameobjects.projectiles;
 
 import java.awt.Image;
-import java.awt.geom.Line2D;
 
 import gameobjects.Block;
 import gameobjects.World;

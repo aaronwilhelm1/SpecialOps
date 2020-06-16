@@ -9,7 +9,6 @@ import geometry.Coordinate;
 import geometry.Shape;
 import visuals.Animation;
 import visuals.AnimationLoader;
-import visuals.ImageLoader;
 import visuals.Sound;
 
 public class Mine extends Trap{

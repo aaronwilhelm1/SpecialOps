@@ -6,7 +6,6 @@ import gameobjects.Players.Player;
 import gameobjects.Players.PlayerStats;
 import geometry.Coordinate;
 import geometry.Rectangle;
-import geometry.Shape;
 import visuals.ImageLoader;
 
 

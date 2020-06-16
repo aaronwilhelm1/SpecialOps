@@ -7,7 +7,6 @@ import gameobjects.Players.Sentry;
 import gameobjects.Players.Spy;
 import geometry.Coordinate;
 import geometry.Rectangle;
-import geometry.Shape;
 import visuals.ImageLoader;
 
 public class Flag extends GameObject{

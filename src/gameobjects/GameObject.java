@@ -1,7 +1,5 @@
 package gameobjects;
 
-import java.awt.Image;
-
 import gameobjects.Players.Player;
 import geometry.Coordinate;
 import geometry.Shape;

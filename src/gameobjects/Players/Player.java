@@ -1,22 +1,16 @@
 package gameobjects.Players;
 import java.awt.Image;
-import java.awt.Point;
 import java.util.ArrayList;
-
-import javax.swing.ImageIcon;
 
 import astar.Mover;
 import gameobjects.Block;
 import gameobjects.Blood;
 import gameobjects.Flag;
-import gameobjects.LevelIndex;
-import gameobjects.PlayerSelection;
 import gameobjects.World;
 import gameobjects.projectiles.Bullet;
 import gameobjects.projectiles.Projectile;
 import gameobjects.projectiles.Tracer;
 import gametype.CTF;
-import gametype.VIP;
 import geometry.Circle;
 import geometry.CollisionDetector;
 import geometry.Coordinate;

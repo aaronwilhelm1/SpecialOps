@@ -9,7 +9,6 @@ import gameobjects.Players.Player;
 import gameobjects.Players.PlayerStats;
 import gameobjects.Players.Sniper;
 import geometry.Circle;
-import geometry.Shape;
 import utility.Utility;
 
 public abstract class Projectile extends GameObject{

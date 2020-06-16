@@ -3,16 +3,12 @@ package gameobjects.Players;
 import java.awt.Image;
 import java.util.ArrayList;
 
-import gameobjects.Blood;
-import gameobjects.Flag;
 import gameobjects.World;
 import gameobjects.projectiles.Bullet;
-import gameobjects.projectiles.Projectile;
 import gameobjects.projectiles.Tracer;
 import geometry.Circle;
 import geometry.CollisionDetector;
 import geometry.Coordinate;
-import geometry.Rectangle;
 import utility.Utility;
 import visuals.AnimationLoader;
 import visuals.ImageLoader;

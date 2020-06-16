@@ -1,13 +1,9 @@
 package gui;
-import java.awt.BorderLayout;
 import java.awt.Dimension;
-import sun.java2d.*;
 import visuals.ImageLoader;
 import visuals.Sound;
 
 import java.awt.Graphics;
-import java.awt.GraphicsConfiguration;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,7 +12,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
@@ -29,9 +24,7 @@ import gameobjects.PlayerSelection;
 import gameobjects.World;
 
 public class GUI extends JFrame implements ActionListener{
-	// instance variables
-		public static BufferedImage soldier;
-		
+	// instance variables		
 		public static final int TIME_PER_TICK = 55;
 		
 		public static int WINDOW_WIDTH;
@@ -101,9 +94,6 @@ public class GUI extends JFrame implements ActionListener{
 	        // STEP 5: register any needed event handlers
 	        addKeyListener( new KeyHandler());
 	        addMouseListener( new MouseClickHandler() );
-
-			// need to load up "soldier" image used below
-	        ClassLoader cldr = panel.getClass().getClassLoader();
 			
 	        // DON'T FORGET TO INCLUDE THIS CODE - otherwise you will not
 	        // be able to close your application!!!
@@ -126,7 +116,6 @@ public class GUI extends JFrame implements ActionListener{
 	        this.pack();
 	        //this.setLocation((int)(width/2-this.getSize().width/2), (int)(height/2-this.getSize().height/2));
 	        this.setLocation((int)(width/2-WINDOW_WIDTH/2), (int)(height/2-WINDOW_HEIGHT/2));
-	        // construction a Swing timer that goes off every 1000 msec (1 sec)
 	        
 	         state = State.MAP_SELECTION;
 	        
@@ -142,7 +131,6 @@ public class GUI extends JFrame implements ActionListener{
 	    
 	     public void paint(Graphics g )
 	     {
-	     	//super.paint(g);
 	    	 panel.paint(g);
 
 	     }
@@ -171,7 +159,6 @@ public class GUI extends JFrame implements ActionListener{
 			((Timer) evt.getSource()).setInitialDelay(delay);
 			((Timer) evt.getSource()).restart();
 			previousTime = currentTime;
-			System.out.println(elapsedTime);
 			
 			if(state == State.GAME) {
 				world.updateWorld();

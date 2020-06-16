@@ -8,7 +8,6 @@ import gameobjects.Players.Assault;
 import gameobjects.Players.Player;
 import geometry.Circle;
 import geometry.Coordinate;
-import geometry.Shape;
 import visuals.ImageLoader;
 
 public class Tracer extends Projectile{

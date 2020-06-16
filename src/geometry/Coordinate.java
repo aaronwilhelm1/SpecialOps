@@ -1,6 +1,5 @@
 package geometry;
 
-import gameobjects.Block;
 import gameobjects.Players.Player;
 import utility.Utility;
 

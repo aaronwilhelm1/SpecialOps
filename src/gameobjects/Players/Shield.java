@@ -3,10 +3,8 @@ package gameobjects.Players;
 import java.awt.Image;
 import java.util.ArrayList;
 
-import gameobjects.Block;
 import gameobjects.Blood;
 import gameobjects.Flag;
-import gameobjects.LevelIndex;
 import gameobjects.World;
 import gameobjects.projectiles.Bullet;
 import gameobjects.projectiles.Projectile;

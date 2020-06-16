@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import gameobjects.World;
 import gameobjects.projectiles.Bullet;
-import gameobjects.projectiles.Grenade;
 import gameobjects.projectiles.Projectile;
 import gameobjects.projectiles.Syringe;
 import gameobjects.projectiles.Tracer;

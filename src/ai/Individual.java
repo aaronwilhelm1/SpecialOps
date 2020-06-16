@@ -2,7 +2,6 @@ package ai;
 
 import astar.AStarPathFinder;
 import astar.Path;
-import astar.Path.Step;
 import astar.PathFinder;
 import gameobjects.Block;
 import gameobjects.World;

@@ -1,15 +1,11 @@
 package ai;
 
-import java.util.ArrayList;
-
 import astar.AStarPathFinder;
 import astar.Path;
 import astar.PathFinder;
 import gameobjects.Block;
-import gameobjects.LevelIndex;
 import gameobjects.World;
 import gameobjects.Players.Player;
-import gametype.VIP;
 import geometry.Coordinate;
 import utility.Utility;
 

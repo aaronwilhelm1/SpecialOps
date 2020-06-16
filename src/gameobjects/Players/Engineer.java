@@ -3,7 +3,6 @@ package gameobjects.Players;
 import java.util.ArrayList;
 
 import gameobjects.Block;
-import gameobjects.Mine;
 import gameobjects.World;
 import gameobjects.projectiles.Bullet;
 import gameobjects.projectiles.Tracer;

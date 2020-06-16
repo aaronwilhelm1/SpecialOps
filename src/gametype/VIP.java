@@ -2,7 +2,6 @@ package gametype;
 
 import java.util.ArrayList;
 
-import ai.Individual;
 import ai.VIPIndividual;
 import gameobjects.Block;
 import gameobjects.GameObject;

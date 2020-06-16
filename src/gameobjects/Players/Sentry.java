@@ -3,8 +3,6 @@ package gameobjects.Players;
 import java.awt.Image;
 import java.util.ArrayList;
 
-import gameobjects.Block;
-import gameobjects.Blood;
 import gameobjects.Flag;
 import gameobjects.World;
 import gameobjects.projectiles.Bullet;
@@ -15,7 +13,6 @@ import geometry.CollisionDetector;
 import geometry.Coordinate;
 import geometry.Rectangle;
 import utility.Utility;
-import visuals.AnimationLoader;
 import visuals.ImageLoader;
 import visuals.Sound;
 
