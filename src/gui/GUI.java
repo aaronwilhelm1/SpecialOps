@@ -17,6 +17,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
@@ -51,7 +53,13 @@ public class GUI extends JFrame implements ActionListener{
 		public enum State {GAME,PLAYER_SELECTION, MAP_SELECTION};
 		public State state;
 		
-		private int counter;		// counts seconds
+		
+		private Thread panelPainter;
+		private int delay;
+		private long previousTime;
+		private final int NUM_OF_FRAMES_TO_REMEMBER = 3;
+		ArrayList <Long> previousTimes = new ArrayList<Long>(NUM_OF_FRAMES_TO_REMEMBER);
+		private int nextIndexToRemove = 0;
 		
 		/** Creates a new instance of gui_test - sets up GUI */
 	    public GUI() {
@@ -124,6 +132,8 @@ public class GUI extends JFrame implements ActionListener{
 	        
 	        Timer timer = new javax.swing.Timer(TIME_PER_TICK, this);
 	        timer.start();		// timer starts here
+	        delay = TIME_PER_TICK;
+	        previousTime = System.currentTimeMillis();
 	        
 	        //start the music
 	        Sound.menu.loop();
@@ -140,9 +150,43 @@ public class GUI extends JFrame implements ActionListener{
 		// this method is called each time the timer goes off     
 		public void actionPerformed(ActionEvent evt) 
 		{
-			repaint();
-			// counting the seconds	
-			counter++;
+			long currentTime = System.currentTimeMillis();
+			long elapsedTime = currentTime - previousTime;
+			if (previousTimes.size() < NUM_OF_FRAMES_TO_REMEMBER) {
+				previousTimes.add((elapsedTime - TIME_PER_TICK));
+			} else {
+				previousTimes.set(nextIndexToRemove, (elapsedTime - TIME_PER_TICK));
+				nextIndexToRemove = (nextIndexToRemove + 1) % NUM_OF_FRAMES_TO_REMEMBER;
+			}
+			
+			// decrease our timer by the amount that we are off on average for the last NUM_OF_FRAMES_TO_REMEMBER ticks
+			int sum = 0;
+			for (Long time : previousTimes) {
+		        sum += time;
+		    }
+			delay -= sum / previousTimes.size();
+			if (delay < 0) {
+				delay = 0;
+			}
+			((Timer) evt.getSource()).setInitialDelay(delay);
+			((Timer) evt.getSource()).restart();
+			previousTime = currentTime;
+			System.out.println(elapsedTime);
+			
+			if(state == State.GAME) {
+				world.updateWorld();
+			}
+	    	
+	    	if(panelPainter == null || panelPainter.getState()==Thread.State.TERMINATED) {
+	        	//Start painting the screen in a thread
+	    		panelPainter = new Thread(){
+	        		public void run(){
+	        			repaint();
+	        		}
+	        	};
+	        	panelPainter.start();
+	    	}
+	    	
 		}
 		
 		 /******** PRIVATE INNER CLASSES FOR EVENT HANDLING ***************/

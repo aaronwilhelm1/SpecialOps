@@ -192,6 +192,7 @@ public class World{
 		Sound.sentryMoving.stopAllSounds();
 	}
 
+	// Called in the GUI class
 	public void updateWorld(){
 		checkMovement();
 		checkFiring();
@@ -746,7 +747,6 @@ public class World{
 		//	g.drawImage(soldier, soldierX, soldierY, this);	// 'soldier' was loaded in constructor
 
 		g.drawImage(ImageLoader.getBackground(map), 0, 0, panel);
-		updateWorld();
 
 		//computers.get(0).getIndividual().getObstacleMap().drawObstacleMap(g);
 		//g.drawImage(GUI.soldier, getPlayer(0).point.getX(), getPlayer(0).point.getY(), gui);
@@ -1122,9 +1122,9 @@ public class World{
 			Circle c = new Circle(player.getNextMove(),Player.PLAYER_RADIUS);
 			if (CollisionDetector.areColliding(c,b.getRectangle())) {//is hitting a block
 				double rotation = player.getPoint().getAngleBetween(b.getMiddle());
-				System.out.println(rotation);
+//				System.out.println(rotation);
 				if (0 < rotation && rotation < Math.PI / 4 && c.getCenter().getX() < b.getTopLeft().getX()) {//player is to the left and moving to the right
-					System.out.println("To the Left");
+//					System.out.println("To the Left");
 					if (c.getCenter().getX() > player.getPoint().getX()){//player is not trying to move left
 						canMoveX = false;
 					}
