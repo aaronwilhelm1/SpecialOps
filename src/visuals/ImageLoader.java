@@ -65,8 +65,10 @@ public class ImageLoader {
 	protected static Image polarisBackgroundImage;
 	protected static Image fortsBackgroundImage;
 
-	protected static Image[] briefcaseTableImages;
-	protected static Image briefcaseImage;
+	protected static Image[] gbriefcaseTableImages;
+	protected static Image[] bbriefcaseTableImages;
+	protected static Image gbriefcaseImage;
+	protected static Image bbriefcaseImage;
 	protected static Image ghaloImage;
 	protected static Image bhaloImage;
 	protected static Image healingHaloImage;
@@ -127,8 +129,10 @@ public class ImageLoader {
 		loadgDeathMarkImage();
 		loadWarehouseBackgroundImage();
 		loadPolarisBackgroundImage();
-		loadBriefcaseTableImages();
-		loadBriefcaseImage();
+		loadbBriefcaseTableImages();
+		loadgBriefcaseTableImages();
+		loadbBriefcaseImage();
+		loadgBriefcaseImage();
 		loadbHaloImage();
 		loadgHaloImage();
 		loadHealingHaloImage();
@@ -351,31 +355,57 @@ public class ImageLoader {
 
 	}
 
+
+	
 	/**
 	 * Gets the images for the two versions of the briefcase table
 	 * Note: returns with briefcase, then without briefcase
 	 * 
-	 * @return The images of the player
+	 * @return The images of the briefcase and table
 	 */
-	public static Image[] getBriefcaseTableImages() {
+	public static Image[] getBriefcaseTableImages(int team) {
 
-		if (briefcaseTableImages == null) {
-			loadBriefcaseTableImages();
+		if (team == 0) {
+			if (bbriefcaseTableImages == null) {
+				loadbBriefcaseTableImages();
+				return bbriefcaseTableImages;
+			}
+		} else if(team == 1) {
+			if (gbriefcaseTableImages == null) {
+				loadgBriefcaseTableImages();
+				return gbriefcaseTableImages;
+			}
+		} else {
+			System.out.println("Error loading briefcase table images with team number " + team);
+			return bbriefcaseTableImages;
 		}
-		return briefcaseTableImages;
+		
+		return bbriefcaseTableImages;
 	}
 
 	/**
-	 * Gets the image the briefcase
+	 * Gets the image for the briefcase
 	 * 
 	 * @return The image of the briefcase
 	 */
-	public static Image getBriefcaseImage() {
+	public static Image getBriefcaseImage(int team) {
 
-		if (briefcaseImage == null) {
-			loadBriefcaseImage();
+		if (team == 0) {
+			if (bbriefcaseImage == null) {
+				loadbBriefcaseImage();
+				return bbriefcaseImage;
+			}
+		} else if(team == 1) {
+			if (gbriefcaseImage == null) {
+				loadgBriefcaseImage();
+				return gbriefcaseImage;
+			}
+		} else {
+			System.out.println("Error loading briefcase image with team number " + team);
+			return bbriefcaseImage;
 		}
-		return briefcaseImage;
+		
+		return bbriefcaseImage;
 	}
 
 	/**
@@ -1170,36 +1200,75 @@ public class ImageLoader {
 	}
 
 
-	/* Loads the images for the briefcase table
+	/* Loads the images for the green briefcase table
 	 * 
 	 */
-	private static void loadBriefcaseTableImages() {
+	private static void loadgBriefcaseTableImages() {
 
-		briefcaseTableImages = new Image[2];
+		gbriefcaseTableImages = new Image[2];
 		for(int j = 0; j < 2; j++)
 			try {
 				if(j == 0){
-					briefcaseTableImages[j] = ImageIO.read(loader.getResource("/images/briefcaseandtable" + ".png"));
+					gbriefcaseTableImages[j] = ImageIO.read(loader.getResource("/images/gbriefcaseandtable" + ".png"));
 				} else{
-					briefcaseTableImages[j] = ImageIO.read(loader.getResource("/images/table" + ".png"));
+					gbriefcaseTableImages[j] = ImageIO.read(loader.getResource("/images/table" + ".png"));
 				}
 
 
-				briefcaseTableImages[j] = briefcaseTableImages[j].getScaledInstance(Block.BLOCK_SIZE, Block.BLOCK_SIZE, 10);
+				gbriefcaseTableImages[j] = gbriefcaseTableImages[j].getScaledInstance(Block.BLOCK_SIZE, Block.BLOCK_SIZE, 10);
 
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 	}
-
-	/* Loads the image for the briefcase
+	
+	/* Loads the images for the blue briefcase table
 	 * 
 	 */
-	private static void loadBriefcaseImage() {
+	private static void loadbBriefcaseTableImages() {
+
+		bbriefcaseTableImages = new Image[2];
+		for(int j = 0; j < 2; j++)
+			try {
+				if(j == 0){
+					bbriefcaseTableImages[j] = ImageIO.read(loader.getResource("/images/bbriefcaseandtable" + ".png"));
+				} else{
+					bbriefcaseTableImages[j] = ImageIO.read(loader.getResource("/images/table" + ".png"));
+				}
+
+
+				bbriefcaseTableImages[j] = bbriefcaseTableImages[j].getScaledInstance(Block.BLOCK_SIZE, Block.BLOCK_SIZE, 10);
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	}
+	
+
+	/* Loads the image for the green briefcase
+	 * 
+	 */
+	private static void loadgBriefcaseImage() {
 
 		try {
-			briefcaseImage = ImageIO.read(loader.getResource("/images/briefcase" + ".png"));
-			briefcaseImage = briefcaseImage.getScaledInstance((int)(Flag.WIDTH), (int)(Flag.HEIGHT), 10);
+			gbriefcaseImage = ImageIO.read(loader.getResource("/images/gbriefcase" + ".png"));
+			gbriefcaseImage = gbriefcaseImage.getScaledInstance((int)(Flag.WIDTH), (int)(Flag.HEIGHT), 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+	
+	
+	/* Loads the image for the blue briefcase
+	 * 
+	 */
+	private static void loadbBriefcaseImage() {
+
+		try {
+			bbriefcaseImage = ImageIO.read(loader.getResource("/images/bbriefcase" + ".png"));
+			bbriefcaseImage = bbriefcaseImage.getScaledInstance((int)(Flag.WIDTH), (int)(Flag.HEIGHT), 10);
 
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -86,7 +86,7 @@ public class Flag extends GameObject{
 
 	@Override
 	public void setImages() {
-		image = ImageLoader.getBriefcaseImage();
+		image = ImageLoader.getBriefcaseImage(team);
 		
 	}
 

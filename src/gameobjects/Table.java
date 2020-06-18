@@ -55,7 +55,7 @@ public class Table extends GameObject{
 
 	@Override
 	public void setImages() {
-		images = ImageLoader.getBriefcaseTableImages();
+		images = ImageLoader.getBriefcaseTableImages(team);
 		
 	}
 
