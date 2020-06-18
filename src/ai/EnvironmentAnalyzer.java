@@ -42,7 +42,7 @@ public class EnvironmentAnalyzer implements Runnable{
 		blockMap = LevelIndex.getTileMap(world.map);
 		obstacleMap = new ObstacleMap(world, blockMap);
 		timeToLive = new ArrayList<Double>();
-		previousInterval = APPROXIMATE_UPDATE_INTERVAL;//just a temp value so it gets an idea of where to go
+		previousInterval = -1;//just a temp value so it gets an idea of where to go
 		previousTime = System.currentTimeMillis();
 	}
 
@@ -50,7 +50,11 @@ public class EnvironmentAnalyzer implements Runnable{
 		//synchronized(world.playerList){
 			//synchronized(influenceMap){
 				//synchronized(damageMaps){
-					previousInterval = (int) (System.currentTimeMillis() - previousTime);
+					if(previousInterval == -1) {
+						previousInterval = APPROXIMATE_UPDATE_INTERVAL;
+					} else {
+						previousInterval = (int) (System.currentTimeMillis() - previousTime);
+					}
 					previousTime = System.currentTimeMillis();
 					setTTL();
 					resetInfluenceMap();
@@ -112,20 +116,22 @@ public class EnvironmentAnalyzer implements Runnable{
 			synchronized(damageMaps){
 				synchronized(influenceMap){
 					double[][]damageMap = damageMaps[team];
-					for(int x = 0; x < damageMap.length; x++){
-						for(int y = 0; y < damageMap[0].length; y++){
-							//System.out.println(x + " " + y);
-							for(int j = 0; j < world.playerList.size(); j++){
+					for(int j = 0; j < world.playerList.size(); j++){
+						for(int x = 0; x < damageMap.length; x++){
+							for(int y = 0; y < damageMap[0].length; y++){
+								//System.out.println(x + " " + y);
 								Player p = world.playerList.get(j);
-								double damage;
-								if(p instanceof Sentry && ((Sentry) p).isConstructing){
-									damage = 0;
-								} else {
-									damage =  calculateDamage(x, y, p);
-								}
 
 								//System.out.println(damage);
 								if(p.getTeam() == team){
+
+									double damage;
+									if(p instanceof Sentry && ((Sentry) p).isConstructing){
+										damage = 0;
+									} else {
+										damage =  calculateDamage(x, y, p);
+									}
+									
 									damageMap[x][y] += damage;
 									
 									// Now update influence map
@@ -237,21 +243,35 @@ public class EnvironmentAnalyzer implements Runnable{
 
 	@Override
 	public void run() {
+		ArrayList <Integer> previousIntervals = new ArrayList<Integer>(2);
+		previousIntervals.add(APPROXIMATE_UPDATE_INTERVAL);
+		previousIntervals.add(APPROXIMATE_UPDATE_INTERVAL);
+		long previousDifference = 0;
 		while(isRunning == true){
-//			System.out.println("Updating " + previousInterval);
 			updateData(); 
-			//System.out.println("it gets here");
 			//in updateData the num is turned to zero
 				synchronized(world.computers){
-					//System.out.println("refreshing paths");
 					for(int j = 0; j < world.computers.size(); j++){
 						world.computers.get(j).getIndividual().refreshPath();
 					}
 				}
 			
-			
+
+			previousIntervals.set(1, previousIntervals.get(0));
+			previousIntervals.set(0, previousInterval);
+			int timeSpent = previousInterval;
+			long difference = timeSpent - APPROXIMATE_UPDATE_INTERVAL;
+			previousDifference += difference;
+			long sleepTime = APPROXIMATE_UPDATE_INTERVAL - previousDifference;
+			if(timeSpent < 0) {
+				timeSpent = 0;
+			}
+			if(sleepTime < 0) {
+				sleepTime = 0;
+			}
+
 			try {
-				Thread.sleep(APPROXIMATE_UPDATE_INTERVAL);
+				Thread.sleep(sleepTime);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
