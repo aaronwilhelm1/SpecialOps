@@ -63,6 +63,7 @@ public class ImageLoader {
 
 	protected static Image warehouseBackgroundImage;
 	protected static Image polarisBackgroundImage;
+	protected static Image fortsBackgroundImage;
 
 	protected static Image[] briefcaseTableImages;
 	protected static Image briefcaseImage;
@@ -551,6 +552,11 @@ public class ImageLoader {
 				loadPolarisBackgroundImage();
 			}
 			return polarisBackgroundImage;
+		} else if(mapName.equals("forts")){
+			if (fortsBackgroundImage == null) {
+				loadFortsBackgroundImage();
+			}
+			return fortsBackgroundImage;
 		} else{
 			System.out.println("No map with name " + mapName);
 			if (warehouseBackgroundImage == null) {
@@ -1394,6 +1400,20 @@ public class ImageLoader {
 		try {
 			polarisBackgroundImage = ImageIO.read(loader.getResource("/images/polarisbackground" + ".png"));
 			polarisBackgroundImage = polarisBackgroundImage.getScaledInstance((int)(Block.BLOCK_SIZE * LevelIndex.LEVEL_WIDTH), (int)(LevelIndex.LEVEL_HEIGHT *Block.BLOCK_SIZE), 10);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/* Loads the image for the background for Forts
+	 * 
+	 */
+	private static void loadFortsBackgroundImage() {
+
+		try {
+			fortsBackgroundImage = ImageIO.read(loader.getResource("/images/warehousebackground" + ".png"));
+			fortsBackgroundImage = fortsBackgroundImage.getScaledInstance((int)(Block.BLOCK_SIZE * LevelIndex.LEVEL_WIDTH), (int)(LevelIndex.LEVEL_HEIGHT *Block.BLOCK_SIZE), 10);
 
 		} catch (IOException e) {
 			e.printStackTrace();
