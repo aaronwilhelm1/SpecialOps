@@ -14,11 +14,8 @@ import gameobjects.World;
 
 public class EnvironmentAnalyzer implements Runnable{
 
-	private final int APPROXIMATE_UPDATE_INTERVAL = 200;
-	//number of times the damagemaps update before the influence map does
-	//it does this number of times, then next time (n+1), it updates
-	private static final int INFLUENCE_UPDATE_RATE = 5;
-	private int updateNum;
+	//TODO: Could theoretically set this to zero, would just need to make sure that there is a "momentum" to switching paths/decisions to keep AI from jerking around
+	private final int APPROXIMATE_UPDATE_INTERVAL = 200; //too low of a number cause the AI to jerk a little since they constantly change paths
 
 	public static double highestinfluence = 0;
 
@@ -34,6 +31,7 @@ public class EnvironmentAnalyzer implements Runnable{
 	private long previousTime;
 	private boolean isRunning;
 	private ArrayList<Double> timeToLive;
+	
 
 	public EnvironmentAnalyzer(World w){
 		isRunning = true;
@@ -43,7 +41,6 @@ public class EnvironmentAnalyzer implements Runnable{
 		influenceMap = new double[ObstacleMap.WIDTH][ObstacleMap.HEIGHT];
 		blockMap = LevelIndex.getTileMap(world.map);
 		obstacleMap = new ObstacleMap(world, blockMap);
-		updateNum = 0;
 		timeToLive = new ArrayList<Double>();
 		previousInterval = APPROXIMATE_UPDATE_INTERVAL;//just a temp value so it gets an idea of where to go
 		previousTime = System.currentTimeMillis();
@@ -55,20 +52,14 @@ public class EnvironmentAnalyzer implements Runnable{
 				//synchronized(damageMaps){
 					previousInterval = (int) (System.currentTimeMillis() - previousTime);
 					previousTime = System.currentTimeMillis();
-					updateNum++;
-					if(updateNum == INFLUENCE_UPDATE_RATE){
-						setTTL();
-						resetInfluenceMap();
-					}
+					setTTL();
+					resetInfluenceMap();
 					/*if running into bugs with sentry, the setTTL() could be using a player list with a sentry
 					and if a sentry is deleted the updateTeam() may be trying to use that same number 
 					of players, resulting in it trying to access players that don't exist*/
 					resetDamageMaps();
 					for(int j = 0; j < 2; j++){
 						updateTeam(j);
-					}
-					if(updateNum == INFLUENCE_UPDATE_RATE){
-						updateNum = 0;
 					}
 				//}
 			//}
@@ -136,29 +127,30 @@ public class EnvironmentAnalyzer implements Runnable{
 								//System.out.println(damage);
 								if(p.getTeam() == team){
 									damageMap[x][y] += damage;
-									if(updateNum == INFLUENCE_UPDATE_RATE){
-										//the amount of dps they did without accounting for time to live
-										double DPMSOld = damage / previousInterval;
-										if(damage == 0){
-											continue;//the calculations below won't matter
-										}
-										//System.out.println(DPMSOld);
-										//the amount of dps they do accounting for their time to live
-										double DPMSNew;
-										if(timeToLive.get(j) > previousInterval){
-											DPMSNew = DPMSOld;
-										} else {
-											DPMSNew = DPMSOld * timeToLive.get(j) / previousInterval;
-										}
-										//System.out.println(DPMSNew);
-										if(team == 0){
-											//influenceMap[x][y] += (damage * p.getHealth() / PlayerStats.getPlayerMaxHealth(p));
-											influenceMap[x][y] += DPMSNew;
-										} else{
-											//influenceMap[x][y] -= (damage * p.getHealth() / PlayerStats.getPlayerMaxHealth(p));
-											influenceMap[x][y] -= DPMSNew;
-										}
+									
+									// Now update influence map
+									//the amount of dps they did without accounting for time to live
+									double DPMSOld = damage / previousInterval;
+									if(damage == 0){
+										continue;//the calculations below won't matter
 									}
+									//System.out.println(DPMSOld);
+									//the amount of dps they do accounting for their time to live
+									double DPMSNew;
+									if(timeToLive.get(j) > previousInterval){
+										DPMSNew = DPMSOld;
+									} else {
+										DPMSNew = DPMSOld * timeToLive.get(j) / previousInterval;
+									}
+									//System.out.println(DPMSNew);
+									if(team == 0){
+										//influenceMap[x][y] += (damage * p.getHealth() / PlayerStats.getPlayerMaxHealth(p));
+										influenceMap[x][y] += DPMSNew;
+									} else{
+										//influenceMap[x][y] -= (damage * p.getHealth() / PlayerStats.getPlayerMaxHealth(p));
+										influenceMap[x][y] -= DPMSNew;
+									}
+									
 									
 								}
 
@@ -208,7 +200,7 @@ public class EnvironmentAnalyzer implements Runnable{
 		if(previousInterval < (timeToTurn + timeToMove)){
 			return 0;
 		}
-		if(!world.hasClearShot(target, p)){//THIS IS WRONG: Player could move around obstacle to fire
+		if(!world.hasClearShot(target, p)){//TODO: THIS IS WRONG: Player could move around obstacle to fire
 			return 0;						//Assuming previousInterval <<< time per tick it won't make much of a difference
 		}
 		double firingLatRange = (1 - PlayerStats.getPlayerAccuracy(p)) * PlayerStats.getPlayerLateralRange(p) * 2;
@@ -246,25 +238,20 @@ public class EnvironmentAnalyzer implements Runnable{
 	@Override
 	public void run() {
 		while(isRunning == true){
-			//System.out.println("Updating " + previousInterval);
-			updateData();
+//			System.out.println("Updating " + previousInterval);
+			updateData(); 
 			//System.out.println("it gets here");
 			//in updateData the num is turned to zero
 				synchronized(world.computers){
 					//System.out.println("refreshing paths");
 					for(int j = 0; j < world.computers.size(); j++){
-						if(j % INFLUENCE_UPDATE_RATE == updateNum){
-							if(j == 0){
-								//System.out.println("I refreshed");
-							}
-							world.computers.get(j).getIndividual().refreshPath();
-						}
+						world.computers.get(j).getIndividual().refreshPath();
 					}
 				}
 			
 			
 			try {
-				Thread.sleep(APPROXIMATE_UPDATE_INTERVAL);//if its previousInterval it will constantly increase
+				Thread.sleep(APPROXIMATE_UPDATE_INTERVAL);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
