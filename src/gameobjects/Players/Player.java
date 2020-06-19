@@ -231,6 +231,8 @@ public class Player implements Drawable, Mover{
 			isDead = true;
 			world.addDeathMark(new Coordinate(point.getX() - (Player.PLAYER_WIDTH/2), point.getY() - (Player.PLAYER_WIDTH/2)), team);
 			
+			world.gameType.playerDied(this,p);
+			
 			p.score++;
 			damageDone = 0;
 			score = 0;
@@ -242,27 +244,11 @@ public class Player implements Drawable, Mover{
 				rotation = Math.PI;
 			}
 			
-			if (hasFlag == true) {
-				hasFlag = false;
-				flag.setIsBeingHeld(false);
-				
-				flag.setPoint(new Coordinate(point.getX(),point.getY()));
-				
-				Coordinate[] b = new Coordinate[4];
-				b[0] = new Coordinate(point.getX(),point.getY());
-				b[1] = new Coordinate(point.getX() + Flag.WIDTH, point.getY());
-				b[2] = new Coordinate(point.getX() + Flag.WIDTH, point.getY() + Flag.HEIGHT);
-				b[3] = new Coordinate (point.getX(), point.getY() + Flag.HEIGHT);
-				
-				flag.setRect(new Rectangle(b, Flag.WIDTH, Flag.HEIGHT));
-				flag.setIsVisible(true);
-				
-			}
+			
 			point.setX(spawnPoint.getX());
 			point.setY(spawnPoint.getY());
 			inSpecial = false;
 			PlayerStats.setPlayerStats(className, this);
-			world.gameType.playerDied(this,p);
 			//System.out.println("Flag's point: " + flag.getPoint() + " Player's point: " + point);
 			
 			if (className == "scout") {
@@ -614,5 +600,6 @@ public class Player implements Drawable, Mover{
 			damageDone -= toAdd * 200;
 		}
 	}
+
 	
 }

@@ -198,7 +198,25 @@ public class CTF implements GameType{
 	}
 
 	public void playerDied(Player p,Player killer) {//TODO: need to add code for if has flag
-		
+		if (p.getHasFlag() == true) {
+			p.setHasFlag(false);
+			Flag flag = p.getFlag();
+			flag.setIsBeingHeld(false);
+			
+			Coordinate point = p.getPoint();
+			
+			p.getFlag().setPoint(new Coordinate(point.getX(),point.getY()));
+			
+			Coordinate[] b = new Coordinate[4];
+			b[0] = new Coordinate(point.getX(),point.getY());
+			b[1] = new Coordinate(point.getX() + Flag.WIDTH, point.getY());
+			b[2] = new Coordinate(point.getX() + Flag.WIDTH, point.getY() + Flag.HEIGHT);
+			b[3] = new Coordinate (point.getX(), point.getY() + Flag.HEIGHT);
+			
+			flag.setRect(new Rectangle(b, Flag.WIDTH, Flag.HEIGHT));
+			flag.setIsVisible(true);
+			
+		}
 	}
 
 	@Override
