@@ -27,8 +27,6 @@ public class GUI extends JFrame implements ActionListener{
 	// instance variables		
 		public static final int TIME_PER_TICK = 55;
 		
-		public static final boolean DEBUG = true;
-		
 		public static int WINDOW_WIDTH;
 		public static int WINDOW_HEIGHT;
 		public static int HUD_WIDTH;

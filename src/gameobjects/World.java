@@ -727,9 +727,6 @@ public class World{
 		if (e.getKeyCode() == KeyEvent.VK_R) {
 			destroyWorld();
 		}
-		if (e.getKeyCode() == KeyEvent.VK_D && GUI.DEBUG == true) {
-			int temp = 1;
-		}
 	}
 
 	public void keyTyped(KeyEvent arg0) {
