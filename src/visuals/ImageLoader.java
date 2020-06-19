@@ -368,19 +368,18 @@ public class ImageLoader {
 		if (team == 0) {
 			if (bbriefcaseTableImages == null) {
 				loadbBriefcaseTableImages();
-				return bbriefcaseTableImages;
 			}
+			return bbriefcaseTableImages;
 		} else if(team == 1) {
 			if (gbriefcaseTableImages == null) {
 				loadgBriefcaseTableImages();
-				return gbriefcaseTableImages;
 			}
+			return gbriefcaseTableImages;
 		} else {
 			System.out.println("Error loading briefcase table images with team number " + team);
 			return bbriefcaseTableImages;
 		}
 		
-		return bbriefcaseTableImages;
 	}
 
 	/**
@@ -1213,7 +1212,6 @@ public class ImageLoader {
 				} else{
 					gbriefcaseTableImages[j] = ImageIO.read(loader.getResource("/images/table" + ".png"));
 				}
-
 
 				gbriefcaseTableImages[j] = gbriefcaseTableImages[j].getScaledInstance(Block.BLOCK_SIZE, Block.BLOCK_SIZE, 10);
 
