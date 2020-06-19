@@ -727,10 +727,13 @@ public class World{
 		if (e.getKeyCode() == KeyEvent.VK_R) {
 			destroyWorld();
 		}
+		if (e.getKeyCode() == KeyEvent.VK_D && GUI.DEBUG == true) {
+			int temp = 1;
+		}
 	}
 
 	public void keyTyped(KeyEvent arg0) {
-		// TODO Auto-generated method stub
+		
 
 	}
 
@@ -946,7 +949,7 @@ public class World{
 	 * @param box
 	 *            The box that holds the size of the image
 	 */
-	protected void drawGameObject(Graphics g, Drawable gameObject) { // TODO
+	protected void drawGameObject(Graphics g, Drawable gameObject) {
 
 		// Vector2f v1 = gameObject.getCoordinates();
 		AffineTransform backup = ((Graphics2D) g).getTransform();
@@ -1055,7 +1058,6 @@ public class World{
 	}
 
 	public void addBullet(Bullet bullet){
-		//TODO
 		if(shells.size() >= maxNumBullets){
 			shells.remove(0);
 		}
@@ -1635,7 +1637,7 @@ public class World{
 			}
 					if (isComp == false && p instanceof Sentry == false && p.getPlayerNum() != 20 && p.getPlayerNum() != 21) {
 						count++;
-						int baseY = (int)(Block.BLOCK_SIZE * 2.4 * (count)) - Block.BLOCK_SIZE * 2;//TODO: change it so i can see if class is updated when pushed i.e. playerselection.getPointer.getString
+						int baseY = (int)(Block.BLOCK_SIZE * 2.4 * (count)) - Block.BLOCK_SIZE * 2;
 					
 						if (p.getTeam() == 0) {
 							g.setColor(new Color(33, 82, 143));
